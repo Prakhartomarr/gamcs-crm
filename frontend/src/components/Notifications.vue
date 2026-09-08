@@ -142,6 +142,8 @@ function getRoute(notification) {
     params = {
       dealId: notification.reference_name,
     }
+  } else if (notification.route_name === 'Relationship') {
+    params = { relationshipId: notification.reference_name } // GAMCS
   }
 
   return {

@@ -32,6 +32,13 @@ export class LeadsPage {
 		if (data.email)
 			await dialog.getByPlaceholder('Email', { exact: true }).fill(data.email)
 
+		// GAMCS: active records need a next action date (F2)
+		const nextAction = dialog.getByPlaceholder('Next Action Date', { exact: true })
+		if (await nextAction.count()) {
+			await nextAction.fill('2026-12-31')
+			await nextAction.press('Enter')
+		}
+
 		await dialog.getByRole('button', { name: 'Create', exact: true }).click()
 		await expect(
 			this.page.getByRole('heading', { name: 'Create Lead' }),

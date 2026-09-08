@@ -61,6 +61,12 @@ const routes = [
     props: true,
   },
   {
+    // GAMCS: follow-ups queue (F2)
+    path: '/follow-ups',
+    name: 'FollowUps',
+    component: () => import('@/pages/FollowUps.vue'),
+  },
+  {
     // GAMCS: partner relationships (F1)
     alias: '/relationships',
     path: '/relationships/view/:viewType?',

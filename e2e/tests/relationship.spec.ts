@@ -70,6 +70,7 @@ test.describe('Partner relationship happy path', () => {
 			sourced_by_relationship: relationship,
 			currency: 'INR',
 			deal_value: 250000,
+			next_action_date: '2026-12-31', // F2 rule
 		})
 		deal = created.name
 		await rel.gotoDetail(relationship)

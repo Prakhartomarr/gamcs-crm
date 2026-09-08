@@ -10,6 +10,7 @@ export interface LeadData {
 	email?: string
 	organization?: string
 	mobile_no?: string
+	next_action_date?: string // GAMCS F2: active records need one
 }
 
 /**
@@ -28,7 +29,9 @@ export function buildLead(overrides: Partial<LeadData> = {}): LeadData {
 		first_name: `E2E Lead ${id}`,
 		email: `e2e-lead-${id}@example.com`,
 		organization: `E2E Org ${id}`,
-		mobile_no: '9999999999',
+		// GAMCS: unique per run; a shared number makes conversion reuse an older run's contact (contact_exists matches by phone)
+		mobile_no: '9' + id.replace(/\D/g, '').slice(-9).padStart(9, '0'),
+		next_action_date: '2026-12-31', // GAMCS F2
 		...overrides,
 	}
 }

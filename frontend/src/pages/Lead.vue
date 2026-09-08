@@ -35,6 +35,11 @@
         </template>
       </Dropdown>
       <Button
+        :label="__('Log activity')"
+        icon-left="plus"
+        @click="showQuickLog = true"
+      /><!-- GAMCS F15 -->
+      <Button
         :label="__('Convert to Deal')"
         variant="solid"
         @click="showConvertToDealModal = true"
@@ -207,6 +212,13 @@
     v-model="showConvertToDealModal"
     :lead="doc"
   />
+  <QuickLog
+    v-if="doc.name"
+    v-model="showQuickLog"
+    doctype="CRM Lead"
+    :docname="leadId"
+    @logged="() => activities?.all_activities?.reload()"
+  /><!-- GAMCS F15 -->
   <FilesUploader
     v-model="showFilesUploader"
     doctype="CRM Lead"
@@ -255,6 +267,7 @@ import LostReasonModal from '@/components/Modals/LostReasonModal.vue'
 import LayoutHeader from '@/components/LayoutHeader.vue'
 import Activities from '@/components/Activities/Activities.vue'
 import AssignTo from '@/components/AssignTo.vue'
+import QuickLog from '@/components/QuickLog.vue' // GAMCS
 import FilesUploader from '@/components/FilesUploader/FilesUploader.vue'
 import SidePanelLayout from '@/components/SidePanelLayout.vue'
 import SLASection from '@/components/SLASection.vue'
@@ -311,6 +324,7 @@ const errorTitle = ref('')
 const errorMessage = ref('')
 const showDeleteLinkedDocModal = ref(false)
 const showConvertToDealModal = ref(false)
+const showQuickLog = ref(false) // GAMCS
 const showFilesUploader = ref(false)
 
 const {

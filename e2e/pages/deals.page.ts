@@ -28,6 +28,7 @@ export class DealsPage {
 		await dialog.getByPlaceholder('Primary email', { exact: true }).fill(email)
 		await this.fillIfPresent(dialog, 'Expected Deal Value', '1000')
 		await this.fillIfPresent(dialog, 'Expected Closure Date', '2026-12-31', true)
+		await this.fillIfPresent(dialog, 'Next Action Date', '2026-12-31', true) // GAMCS F2
 
 		await dialog.getByRole('button', { name: 'Create', exact: true }).click()
 		await expect(

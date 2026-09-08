@@ -397,6 +397,11 @@ function redirect(doctype, docname) {
   if (name == 'Deal') {
     params = { dealId: docname }
   }
+  if (doctype == 'GAMCS Relationship') {
+    // GAMCS
+    name = 'Relationship'
+    params = { relationshipId: docname }
+  }
   router.push({ name: name, params: params })
 }
 

@@ -16,6 +16,11 @@
         v-if="document.actions?.length"
         :actions="document.actions"
       />
+      <Button
+        :label="__('Log activity')"
+        icon-left="plus"
+        @click="showQuickLog = true"
+      /><!-- GAMCS F15 -->
       <AssignTo v-model="assignees.data" doctype="CRM Deal" :docname="dealId" />
       <Dropdown
         v-if="doc && document.statuses"
@@ -309,6 +314,13 @@
       afterInsert: (_doc) => addContact(_doc.name),
     }"
   />
+  <QuickLog
+    v-if="doc.name"
+    v-model="showQuickLog"
+    doctype="CRM Deal"
+    :docname="dealId"
+    @logged="() => activities?.all_activities?.reload()"
+  /><!-- GAMCS F15 -->
   <FilesUploader
     v-model="showFilesUploader"
     doctype="CRM Deal"
@@ -360,6 +372,7 @@ import Activities from '@/components/Activities/Activities.vue'
 import OrganizationModal from '@/components/Modals/OrganizationModal.vue'
 import LostReasonModal from '@/components/Modals/LostReasonModal.vue'
 import AssignTo from '@/components/AssignTo.vue'
+import QuickLog from '@/components/QuickLog.vue' // GAMCS
 import FilesUploader from '@/components/FilesUploader/FilesUploader.vue'
 import ContactModal from '@/components/Modals/ContactModal.vue'
 import Link from '@/components/Controls/Link.vue'
@@ -515,6 +528,7 @@ onBeforeUnmount(() => {
 const reload = ref(false)
 const showOrganizationModal = ref(false)
 const showFilesUploader = ref(false)
+const showQuickLog = ref(false) // GAMCS
 const _organization = ref({})
 
 const breadcrumbs = computed(() => {

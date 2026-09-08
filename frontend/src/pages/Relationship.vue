@@ -163,6 +163,13 @@
     :errorTitle="errorTitle"
     :errorMessage="errorMessage"
   />
+  <QuickLog
+    v-if="doc.name"
+    v-model="showQuickLog"
+    doctype="GAMCS Relationship"
+    :docname="relationshipId"
+    @logged="reloadResources"
+  />
   <DeleteLinkedDocModal
     v-if="showDeleteLinkedDocModal"
     v-model="showDeleteLinkedDocModal"
@@ -190,6 +197,7 @@ import AttachmentIcon from '@/components/Icons/AttachmentIcon.vue'
 import LayoutHeader from '@/components/LayoutHeader.vue'
 import Activities from '@/components/Activities/Activities.vue'
 import AssignTo from '@/components/AssignTo.vue'
+import QuickLog from '@/components/QuickLog.vue'
 import SidePanelLayout from '@/components/SidePanelLayout.vue'
 import { openWebsite, copyToClipboard } from '@/utils'
 import { getView } from '@/utils/view'
@@ -223,6 +231,7 @@ const props = defineProps({
 const errorTitle = ref('')
 const errorMessage = ref('')
 const showDeleteLinkedDocModal = ref(false)
+const showQuickLog = ref(false)
 const reload = ref(false)
 const activities = ref(null)
 

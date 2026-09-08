@@ -85,6 +85,15 @@
                 <template #prefix>
                   <Icon :icon="link.icon" class="size-4 text-ink-gray-7" />
                 </template>
+                <template v-if="link.badge?.()" #suffix>
+                  <!-- GAMCS -->
+                  <Badge
+                    class="mr-2"
+                    :label="link.badge()"
+                    variant="subtle"
+                    theme="red"
+                  />
+                </template>
                 <Tooltip
                   :text="__(link.label)"
                   placement="right"
@@ -226,6 +235,8 @@ import {
 import router from '@/router'
 import { getSettings } from '@/stores/settings' // GAMCS
 import LucideHandshake from '~icons/lucide/handshake' // GAMCS
+import LucideListChecks from '~icons/lucide/list-checks' // GAMCS
+import { createResource } from 'frappe-ui' // GAMCS
 import { useStorage } from '@vueuse/core'
 import { useDemoData } from '@/composables/demoData'
 import { ref, reactive, computed, markRaw, onMounted, watch } from 'vue'
@@ -237,6 +248,17 @@ const props = defineProps({
 
 const route = useRoute()
 const { brand } = getSettings() // GAMCS
+// GAMCS F2: sidebar badge = overdue + due today + needs next action
+const followUpCounts = createResource({
+  url: 'gamcs_crm.api.follow_ups.get_follow_ups',
+  params: { counts_only: 1 },
+  cache: 'gamcs-follow-up-counts',
+  auto: true,
+})
+watch(
+  () => route.fullPath,
+  () => followUpCounts.reload(),
+)
 
 const { getPinnedViews, getPublicViews } = viewsStore()
 const { toggle: toggleNotificationPanel } = notificationsStore()
@@ -286,6 +308,12 @@ const links = [
     to: 'Relationships',
   },
   {
+    label: 'Follow-ups', // GAMCS F2
+    icon: LucideListChecks,
+    to: 'FollowUps',
+    badge: () => followUpCounts.data?.counts?.badge || 0,
+  },
+  {
     label: 'Notes',
     icon: NoteIcon,
     to: 'Notes',
@@ -320,6 +348,7 @@ const allViews = computed(() => {
           icon: link.icon,
           key: link.to,
           to: { name: link.to },
+          badge: link.badge, // GAMCS
         })),
     },
   ]

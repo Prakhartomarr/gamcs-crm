@@ -44,6 +44,9 @@ export class RelationshipsPage {
 	async createRelationship(organization: string, relationshipType: string) {
 		await this.pickLink('Organization', organization)
 		await this.pickLink('Relationship Type', relationshipType)
+		const nextAction = this.page.getByRole('dialog').getByPlaceholder('Next Action Date', { exact: true })
+		await nextAction.fill('2026-12-31')
+		await nextAction.press('Enter')
 		await this.page
 			.getByRole('dialog')
 			.getByRole('button', { name: 'Create', exact: true })
