@@ -99,6 +99,19 @@
           v-model="form.po_received"
         />
         <div
+          v-if="form.needs_reconciliation"
+          class="col-span-2 rounded border border-orange-300 bg-orange-50 p-3 text-base"
+          data-testid="won-variance"
+        >
+          <div class="mb-2 text-ink-gray-8">
+            {{ __('The billing structure gives TCV {0}; the accepted final value is {1}. Reconcile the structure, or record why they differ (D42).', [money(form.tcv), money(form.final_value)]) }}
+          </div>
+          <div class="flex items-end gap-3">
+            <FormControl class="flex-1" type="textarea" :label="__('Variance reason')" v-model="form.variance_reason" data-testid="won-variance-reason" />
+            <Button :label="__('Reconcile first')" @click="emit('reconcile')" />
+          </div>
+        </div>
+        <div
           v-if="form.referral"
           class="col-span-2 rounded border p-3 text-base"
           data-testid="won-fee"
@@ -159,7 +172,7 @@ const props = defineProps({
   dealId: { type: String, required: true },
   status: { type: String, default: '' },
 })
-const emit = defineEmits(['won', 'cancel'])
+const emit = defineEmits(['won', 'cancel', 'reconcile'])
 const show = defineModel({ type: Boolean })
 
 const form = reactive({})

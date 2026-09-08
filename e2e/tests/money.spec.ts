@@ -1,6 +1,6 @@
 import { test, expect, APIRequestContext } from '@playwright/test'
 import * as fs from 'fs'
-import { createDoc, deleteDoc, getDoc, uniqueSuffix } from '../helpers'
+import { callMethod, createDoc, deleteDoc, getDoc, uniqueSuffix } from '../helpers'
 
 /**
  * GAMCS Phase 1C happy path (F4/F6/F7/F8): quarterly billing derives monthly, ACV and TCV (D34);
@@ -23,6 +23,7 @@ test.describe('Money: commercials, proposals, Won and Lost', () => {
 	const orgName = `E2E Money Org ${id}`
 	let deal = ''
 	let lostDeal = ''
+	let varianceDeal = ''
 
 	test.beforeAll(async ({ request }) => {
 		await createDoc(request, 'CRM Organization', { organization_name: orgName })
@@ -43,7 +44,7 @@ test.describe('Money: commercials, proposals, Won and Lost', () => {
 	})
 
 	test.afterAll(async ({ request }) => {
-		for (const name of [deal, lostDeal].filter(Boolean)) {
+		for (const name of [deal, lostDeal, varianceDeal].filter(Boolean)) {
 			try {
 				const doc = await getDoc<{ engagement?: string; next_action_task?: string }>(request, 'CRM Deal', name)
 				if (doc.engagement) {
@@ -107,8 +108,37 @@ test.describe('Money: commercials, proposals, Won and Lost', () => {
 		await page.getByRole('menuitem', { name: 'Accepted' }).click()
 		await expect(v2.getByText('Accepted')).toBeVisible()
 
+		// D42: the reconcile dialog opens with the one-field change that makes TCV equal the accepted amount
+		const reconcile = page.getByTestId('reconcile-dialog')
+		await expect(reconcile).toBeVisible()
+		await expect(reconcile.getByLabel(/Billed amount per period/)).toHaveValue('275000') // 11L over four quarters
+		await expect(reconcile.getByTestId('reconcile-preview')).toContainText(/11,00,000|1,100,000/)
+		await page.getByRole('button', { name: 'Save structure' }).click()
+		await expect(reconcile).toBeHidden()
+		await expect(page.getByTestId('reconcile-banner')).toBeHidden()
+
 		const doc = await getDoc<Record<string, number>>(request, 'CRM Deal', deal)
 		expect([doc.initial_quote, doc.negotiated_quote, doc.final_value]).toEqual([1200000, 1100000, 1100000])
+		expect([doc.billed_amount, doc.acv, doc.tcv, doc.needs_reconciliation]).toEqual([275000, 1100000, 1100000, 0])
+	})
+
+	test('an unreconciled accepted amount flags the deal and the server blocks Won', async ({ request }) => {
+		const d = await createDoc<{ name: string }>(request, 'CRM Deal', {
+			status: 'Negotiation', next_action_date: '2026-09-30', next_step: 'x', email: `e2e-var-${id}@example.com`, currency: 'INR',
+			billing_frequency: 'Monthly', billed_amount: 10000, contract_duration_months: 12,
+		})
+		varianceDeal = d.name
+		const p = await callMethod<{ name: string }>(request, 'gamcs_crm.api.proposal.create_proposal', { deal: d.name, values: { amount: 90000, proposal_date: '2026-09-09' } })
+		await callMethod(request, 'gamcs_crm.api.proposal.update_proposal', { name: p.name, values: { approval_status: 'Approved' } })
+		await callMethod(request, 'gamcs_crm.api.proposal.update_proposal', { name: p.name, values: { client_status: 'Accepted' } })
+		const doc = await getDoc<Record<string, number>>(request, 'CRM Deal', d.name)
+		expect([doc.tcv, doc.final_value, doc.needs_reconciliation]).toEqual([120000, 90000, 1])
+		const res = await request.post('/api/method/gamcs_crm.api.won.mark_won', {
+			data: { deal: d.name, values: { client_legal_name: 'Var', start_date: '2026-10-01', contract_signed: 1, po_received: 0, delivery_owner: 'Administrator', account_manager: 'Administrator', service: 'FP&A' } },
+			headers: { 'X-Frappe-CSRF-Token': csrf() },
+		})
+		expect(res.ok()).toBeFalsy()
+		expect(await res.text()).toContain('Reconcile')
 	})
 
 	test('server refuses Won without the onboarding details', async ({ request }) => {
@@ -127,7 +157,7 @@ test.describe('Money: commercials, proposals, Won and Lost', () => {
 		await expect(dialog.getByLabel(/Final client name/)).toHaveValue(orgName) // D36
 		await expect(dialog.getByLabel(/Final commercial/)).toHaveValue('1100000') // from the accepted proposal
 		await expect(dialog.getByLabel(/Final commercial/)).toBeDisabled()
-		await expect(dialog.getByLabel(/Expected annual revenue/)).toHaveValue(/12,00,000|1,200,000/) // D35
+		await expect(dialog.getByLabel(/Expected annual revenue/)).toHaveValue(/11,00,000|1,100,000/) // D35, after D42 reconciliation
 		await expect(dialog.getByLabel(/Contract duration/)).toHaveValue('12')
 		await expect(dialog.getByText('FP&A')).toBeVisible()
 		await dialog.getByLabel('Contract signed').check()
@@ -139,7 +169,7 @@ test.describe('Money: commercials, proposals, Won and Lost', () => {
 		expect([doc.status, doc.probability]).toEqual(['Won', 100])
 		const eng = await getDoc<Record<string, unknown>>(request, 'GAMCS Engagement', doc.engagement)
 		expect([eng.client_legal_name, eng.expected_annual_revenue, eng.final_value, eng.contract_signed, eng.po_received, eng.delivery_owner]).toEqual(
-			[orgName, 1200000, 1100000, 1, 0, 'Administrator'],
+			[orgName, 1100000, 1100000, 1, 0, 'Administrator'],
 		)
 	})
 
@@ -153,6 +183,6 @@ test.describe('Money: commercials, proposals, Won and Lost', () => {
 		const ok = await setValue(request, lostDeal, { status: 'Lost', lost_reason: 'Price' })
 		expect(ok.ok()).toBeTruthy()
 		const doc = await getDoc<{ lost_date: string }>(request, 'CRM Deal', lostDeal)
-		expect(doc.lost_date).toBe(new Date().toISOString().slice(0, 10))
+		expect(doc.lost_date).toBe(new Date(Date.now() + 5.5 * 3600e3).toISOString().slice(0, 10)) // site runs on Asia/Kolkata
 	})
 })

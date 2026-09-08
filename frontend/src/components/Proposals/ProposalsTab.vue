@@ -165,7 +165,7 @@ const props = defineProps({
   deal: { type: String, required: true },
   currency: { type: String, default: 'INR' },
 })
-const emit = defineEmits(['changed'])
+const emit = defineEmits(['changed', 'accepted'])
 const { isManager } = usersStore()
 
 const proposals = createResource({
@@ -188,6 +188,7 @@ async function apply(name, values) {
     await call('gamcs_crm.api.proposal.update_proposal', { name, values })
     proposals.reload()
     emit('changed')
+    if (values.client_status === 'Accepted') emit('accepted', name) // D42
   } catch (e) {
     toast.error(e.messages?.[0] || e.message)
   }

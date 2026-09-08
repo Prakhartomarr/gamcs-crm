@@ -51,4 +51,32 @@ setup('authenticate', async ({ page }) => {
 	fs.writeFileSync(csrfFile, JSON.stringify({ csrf_token: csrfToken }))
 
 	await page.context().storageState({ path: authFile })
+
+	// GAMCS 1E: a real BD login (Sales User) for the permission tests; created or reset by the Administrator session above
+	const bdUser = process.env.BD_USER || 'bd-e2e@example.com'
+	const bdPassword = process.env.BD_PASSWORD || 'BdE2e!2026'
+	const exists = await page.request.get(`/api/resource/User/${bdUser}`)
+	if (!exists.ok()) {
+		const created = await page.request.post('/api/resource/User', {
+			data: { email: bdUser, first_name: 'BD E2E', send_welcome_email: 0, new_password: bdPassword, roles: [{ role: 'Sales User' }] },
+			headers: { 'X-Frappe-CSRF-Token': csrfToken as string },
+		})
+		expect(created.ok()).toBeTruthy()
+	} else {
+		const reset = await page.request.put(`/api/resource/User/${bdUser}`, {
+			data: { new_password: bdPassword, enabled: 1 },
+			headers: { 'X-Frappe-CSRF-Token': csrfToken as string },
+		})
+		expect(reset.ok()).toBeTruthy()
+	}
+	const bd = await page.context().browser()!.newContext()
+	const bdPage = await bd.newPage()
+	const bdLogin = await bdPage.request.post('/api/method/login', { form: { usr: bdUser, pwd: bdPassword } })
+	expect(bdLogin.ok()).toBeTruthy()
+	await bdPage.goto('/crm')
+	await bdPage.waitForLoadState('networkidle')
+	const bdCsrf = await bdPage.evaluate(() => (window as unknown as { csrf_token?: string }).csrf_token)
+	fs.writeFileSync('e2e/.auth/bd-csrf.json', JSON.stringify({ csrf_token: bdCsrf, user: bdUser }))
+	await bd.storageState({ path: 'e2e/.auth/bd.json' })
+	await bd.close()
 })

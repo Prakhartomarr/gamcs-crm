@@ -49,11 +49,21 @@
       class="flex flex-1 overflow-hidden flex-col [&_[role='tab']]:px-0 [&_[role='tab']]:shrink-0 [&_[role='tablist']]:px-5 [&_[role='tablist']::-webkit-scrollbar]:h-0 [&_[role='tablist']]:min-h-[45px] [&_[role='tablist']]:gap-7.5 [&_[role='tabpanel']:not([hidden])]:flex [&_[role='tabpanel']:not([hidden])]:grow"
     >
       <template #tab-panel>
+        <div class="flex flex-1 flex-col overflow-hidden"><!-- GAMCS: banner + panel -->
+        <div
+          v-if="doc.needs_reconciliation"
+          class="mx-5 mt-3 flex items-center justify-between gap-3 rounded border border-orange-300 bg-orange-50 px-3 py-2 text-base text-ink-gray-8"
+          data-testid="reconcile-banner"
+        >
+          <span>{{ __('The billing structure gives a TCV that differs from the accepted final value by {0}. Reconcile it before marking Won (D42).', [doc.tcv_variance]) }}</span>
+          <Button :label="__('Reconcile')" variant="subtle" @click="showReconcile = true" />
+        </div>
         <ProposalsTab
           v-if="tabs[tabIndex]?.name === 'Proposals'"
           :deal="dealId"
           :currency="doc.currency"
           @changed="reloadResources"
+          @accepted="onProposalAccepted"
         /><!-- GAMCS F6 -->
         <Activities
           v-else
@@ -66,6 +76,7 @@
           @beforeSave="beforeStatusChange"
           @afterSave="reloadResources"
         />
+        </div>
       </template>
     </Tabs>
     <Resizer side="right" class="flex flex-col justify-between border-l">
@@ -335,7 +346,14 @@
     :status="wonStatus"
     @won="afterWon"
     @cancel="cancelWon"
+    @reconcile="reconcileFromWon"
   /><!-- GAMCS F7 -->
+  <ReconcileModal
+    v-if="showReconcile"
+    v-model="showReconcile"
+    :dealId="dealId"
+    @saved="afterReconcile"
+  /><!-- GAMCS D42 -->
   <ManualRateModal
     v-if="showManualRate"
     v-model="showManualRate"
@@ -398,6 +416,7 @@ import QuickLog from '@/components/QuickLog.vue' // GAMCS
 import WonModal from '@/components/Modals/WonModal.vue' // GAMCS F7
 import ManualRateModal from '@/components/Modals/ManualRateModal.vue' // GAMCS D29
 import ProposalsTab from '@/components/Proposals/ProposalsTab.vue' // GAMCS F6
+import ReconcileModal from '@/components/Modals/ReconcileModal.vue' // GAMCS D42
 import LucideFileText from '~icons/lucide/file-text' // GAMCS
 import FilesUploader from '@/components/FilesUploader/FilesUploader.vue'
 import ContactModal from '@/components/Modals/ContactModal.vue'
@@ -571,6 +590,21 @@ function afterWon() {
   document.reload()
   reload.value = true
   sections.reload()
+}
+// GAMCS D42: an accepted proposal must be reconciled with the billing structure
+const showReconcile = ref(false)
+function onProposalAccepted() {
+  reloadResources()
+  showReconcile.value = true
+}
+function afterReconcile() {
+  document.reload()
+  reload.value = true
+  sections.reload()
+}
+function reconcileFromWon() {
+  cancelWon()
+  showReconcile.value = true
 }
 // GAMCS D29: an unreachable rate service asks for the rate instead of failing the save
 const showManualRate = ref(false)
