@@ -29,6 +29,7 @@
             v-if="tabs.data"
             :tabs="tabs.data"
             :data="relationship.doc"
+            doctype="GAMCS Relationship"
           />
           <ErrorMessage v-if="error" class="mt-4" :message="__(error)" />
         </div>

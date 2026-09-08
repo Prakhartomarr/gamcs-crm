@@ -24,7 +24,10 @@
     v-model:resizeColumn="triggerResize"
     v-model:updatedPageCount="updatedPageCount"
     doctype="GAMCS Relationship"
-    :options="{ allowedViews: ['list', 'group_by', 'kanban'] }"
+    :options="{
+      allowedViews: ['list', 'group_by', 'kanban'],
+      defaultColumnField: 'stage',
+    }"
   />
   <KanbanView
     v-if="route.params.viewType == 'kanban'"

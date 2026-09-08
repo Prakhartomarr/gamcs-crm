@@ -98,6 +98,51 @@
           </div>
         </div>
       </div>
+      <div data-testid="rollup" class="border-b px-5 py-4 text-base">
+        <div class="mb-2 text-sm text-ink-gray-5">
+          {{ __('Opportunities from this partner') }}
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div>
+            <div
+              data-testid="rollup-count"
+              class="text-2xl-semibold text-ink-gray-9"
+            >
+              {{ opportunities.data?.count ?? 0 }}
+            </div>
+            <div class="text-sm text-ink-gray-5">{{ __('Opportunities') }}</div>
+          </div>
+          <div>
+            <div class="text-2xl-semibold text-ink-gray-9">
+              {{ inr(opportunities.data?.won_value) }}
+            </div>
+            <div class="text-sm text-ink-gray-5">{{ __('Won (INR)') }}</div>
+          </div>
+          <div>
+            <div class="text-2xl-semibold text-ink-gray-9">
+              {{ inr(opportunities.data?.fees_due) }}
+            </div>
+            <div class="text-sm text-ink-gray-5">
+              {{ __('Fees due (INR)') }}
+            </div>
+          </div>
+        </div>
+        <div
+          v-for="d in opportunities.data?.deals || []"
+          :key="d.name"
+          data-testid="rollup-deal"
+          class="mt-2 flex cursor-pointer items-center justify-between rounded px-2 py-1.5 hover:bg-surface-gray-1"
+          @click="router.push({ name: 'Deal', params: { dealId: d.name } })"
+        >
+          <div class="truncate">
+            <span class="text-ink-gray-9">{{ d.organization || d.name }}</span>
+            <span class="ml-2 text-ink-gray-5">{{ d.status }}</span>
+          </div>
+          <div class="whitespace-nowrap text-ink-gray-7">
+            {{ d.currency }} {{ d.deal_value }}
+          </div>
+        </div>
+      </div>
       <div
         v-if="sections.data"
         class="flex flex-1 flex-col justify-between overflow-hidden"
@@ -109,63 +154,6 @@
           @reload="sections.reload"
           @afterFieldChange="reloadResources"
         >
-          <template #default="{ section }">
-            <div
-              v-if="section.name == 'opportunities_section'"
-              class="px-3 pb-3 text-base"
-            >
-              <div class="grid grid-cols-3 gap-2 py-3 text-center">
-                <div>
-                  <div class="text-2xl-semibold text-ink-gray-9">
-                    {{ opportunities.data?.count ?? 0 }}
-                  </div>
-                  <div class="text-sm text-ink-gray-5">
-                    {{ __('Opportunities') }}
-                  </div>
-                </div>
-                <div>
-                  <div class="text-2xl-semibold text-ink-gray-9">
-                    {{ inr(opportunities.data?.won_value) }}
-                  </div>
-                  <div class="text-sm text-ink-gray-5">
-                    {{ __('Won (INR)') }}
-                  </div>
-                </div>
-                <div>
-                  <div class="text-2xl-semibold text-ink-gray-9">
-                    {{ inr(opportunities.data?.fees_due) }}
-                  </div>
-                  <div class="text-sm text-ink-gray-5">
-                    {{ __('Fees due (INR)') }}
-                  </div>
-                </div>
-              </div>
-              <div
-                v-for="d in opportunities.data?.deals || []"
-                :key="d.name"
-                class="flex items-center justify-between rounded px-2 py-1.5 hover:bg-surface-gray-1 cursor-pointer"
-                @click="
-                  router.push({ name: 'Deal', params: { dealId: d.name } })
-                "
-              >
-                <div class="truncate">
-                  <span class="text-ink-gray-9">{{
-                    d.organization || d.name
-                  }}</span>
-                  <span class="ml-2 text-ink-gray-5">{{ d.status }}</span>
-                </div>
-                <div class="text-ink-gray-7 whitespace-nowrap">
-                  {{ d.currency }} {{ d.deal_value }}
-                </div>
-              </div>
-              <div
-                v-if="!opportunities.data?.deals?.length"
-                class="py-4 text-center text-ink-gray-4"
-              >
-                {{ __('No opportunities yet') }}
-              </div>
-            </div>
-          </template>
         </SidePanelLayout>
       </div>
     </Resizer>

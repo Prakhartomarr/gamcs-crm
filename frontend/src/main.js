@@ -1,3 +1,4 @@
+import './frappeUiConfig' // GAMCS: must be the first import, see file
 import './index.css'
 
 import { createApp } from 'vue'
