@@ -61,6 +61,19 @@ const routes = [
     props: true,
   },
   {
+    // GAMCS: partner relationships (F1)
+    alias: '/relationships',
+    path: '/relationships/view/:viewType?',
+    name: 'Relationships',
+    component: () => import('@/pages/Relationships.vue'),
+  },
+  {
+    path: '/relationships/:relationshipId',
+    name: 'Relationship',
+    component: () => import('@/pages/Relationship.vue'),
+    props: true,
+  },
+  {
     alias: '/notes',
     path: '/notes/view/:viewType?',
     name: 'Notes',

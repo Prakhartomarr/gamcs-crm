@@ -225,6 +225,7 @@ import {
 } from 'frappe-ui/frappe'
 import router from '@/router'
 import { getSettings } from '@/stores/settings' // GAMCS
+import LucideHandshake from '~icons/lucide/handshake' // GAMCS
 import { useStorage } from '@vueuse/core'
 import { useDemoData } from '@/composables/demoData'
 import { ref, reactive, computed, markRaw, onMounted, watch } from 'vue'
@@ -278,6 +279,11 @@ const links = [
     label: 'Organizations',
     icon: OrganizationsIcon,
     to: 'Organizations',
+  },
+  {
+    label: 'Relationships', // GAMCS
+    icon: LucideHandshake,
+    to: 'Relationships',
   },
   {
     label: 'Notes',
