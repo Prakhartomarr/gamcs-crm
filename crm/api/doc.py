@@ -381,6 +381,9 @@ def get_data(
 		if not rows:
 			rows = default_rows
 
+		if not column_field and hasattr(_list, "default_kanban_settings"):
+			column_field = _list.default_kanban_settings().get("column_field")
+
 		if not kanban_columns and column_field:
 			field_meta = frappe.get_meta(doctype).get_field(column_field)
 			if field_meta.fieldtype == "Link":
