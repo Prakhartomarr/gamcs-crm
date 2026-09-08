@@ -1,5 +1,5 @@
-{# GAMCS: brand from FCRM Settings #}
-<p>You have been invited to join {{ frappe.db.get_single_value("FCRM Settings", "brand_name") or "the CRM" }}</p>
+{# GAMCS: title comes from FCRM Settings.brand_name via crm_invitation.py #}
+<p>You have been invited to join {{ title }}</p>
 <p>
 	<a class="btn btn-primary" href="{{ invite_link }}">Accept Invitation</a>
 </p>
