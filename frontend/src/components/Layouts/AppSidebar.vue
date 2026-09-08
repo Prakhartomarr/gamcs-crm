@@ -235,6 +235,7 @@ import {
 import router from '@/router'
 import LucideHandshake from '~icons/lucide/handshake' // GAMCS
 import LucideListChecks from '~icons/lucide/list-checks' // GAMCS
+import LucideScrollText from '~icons/lucide/scroll-text' // GAMCS
 import { createResource } from 'frappe-ui' // GAMCS
 import { useStorage } from '@vueuse/core'
 import { useDemoData } from '@/composables/demoData'
@@ -310,6 +311,12 @@ const links = [
     icon: LucideListChecks,
     to: 'FollowUps',
     badge: () => followUpCounts.data?.counts?.badge || 0,
+  },
+  {
+    label: 'Audit log', // GAMCS F16
+    icon: LucideScrollText,
+    to: 'AuditLog',
+    condition: () => isManager(),
   },
   {
     label: 'Notes',

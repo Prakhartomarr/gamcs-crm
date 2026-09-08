@@ -70,9 +70,17 @@
       </div>
     </template>
   </Dialog>
+  <DuplicateModal
+    v-if="showDuplicates"
+    v-model="showDuplicates"
+    :matches="duplicates"
+    @proceed="createAnyway"
+  /><!-- GAMCS F11 -->
 </template>
-
 <script setup>
+// GAMCS F11: ask the server for probable duplicates before inserting; "Create anyway" records the override
+import DuplicateModal from '@/components/Modals/DuplicateModal.vue'
+import { call as checkDuplicatesCall } from 'frappe-ui'
 import EditIcon from '@/components/Icons/EditIcon.vue'
 import FieldLayout from '@/components/FieldLayout/FieldLayout.vue'
 import { usersStore } from '@/stores/users'
@@ -167,6 +175,23 @@ const tabs = createResource({
 
 const dealStatuses = computed(() => statusOptions('deal'))
 
+const duplicates = ref([]) // GAMCS F11
+const showDuplicates = ref(false)
+async function hasDuplicates() {
+  if (deal.doc.duplicate_override_of) return false
+  const matches = await checkDuplicatesCall('gamcs_crm.api.duplicates.check', {
+    doctype: 'CRM Deal',
+    values: deal.doc,
+  })
+  if (!matches?.length) return false
+  duplicates.value = matches
+  showDuplicates.value = true
+  return true
+}
+function createAnyway(ref) {
+  deal.doc.duplicate_override_of = ref
+  createDeal()
+}
 async function createDeal() {
   if (deal.doc.website && !deal.doc.website.startsWith('http')) {
     deal.doc.website = 'https://' + deal.doc.website
@@ -179,6 +204,7 @@ async function createDeal() {
   } else deal.doc['contact'] = null
 
   await triggerOnBeforeCreate?.()
+  if (await hasDuplicates()) return // GAMCS F11
 
   createResource({
     url: 'crm.fcrm.doctype.crm_deal.crm_deal.create_deal',

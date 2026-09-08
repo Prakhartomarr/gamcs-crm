@@ -67,6 +67,12 @@ const routes = [
     component: () => import('@/pages/FollowUps.vue'),
   },
   {
+    // GAMCS: audit view, Management and Admin (F16)
+    path: '/audit',
+    name: 'AuditLog',
+    component: () => import('@/pages/AuditLog.vue'),
+  },
+  {
     // GAMCS: partner relationships (F1)
     alias: '/relationships',
     path: '/relationships/view/:viewType?',

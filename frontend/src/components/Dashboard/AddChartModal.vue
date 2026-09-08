@@ -41,6 +41,7 @@
 </template>
 
 <script setup lang="ts">
+import { createResource as gamcsResource } from 'frappe-ui' // GAMCS
 import { getRandom } from '@/utils'
 import { createResource, Dialog, FormControl } from 'frappe-ui'
 import { ref, reactive, inject } from 'vue'
@@ -68,7 +69,7 @@ const chartTypes = [
 ]
 
 const numberChart = ref('')
-const numberCharts = [
+const numberCharts = reactive([
   { label: __('Total Leads'), value: 'total_leads' },
   { label: __('Ongoing Deals'), value: 'ongoing_deals' },
   { label: __('Avg Ongoing Deal Value'), value: 'average_ongoing_deal_value' },
@@ -83,10 +84,10 @@ const numberCharts = [
     label: __('Avg Time to Close a Deal'),
     value: 'average_time_to_close_a_deal',
   },
-]
+])
 
 const axisChart = ref('sales_trend')
-const axisCharts = [
+const axisCharts = reactive([
   { label: __('Sales Trend'), value: 'sales_trend' },
   { label: __('Forecasted Revenue'), value: 'forecasted_revenue' },
   { label: __('Funnel Conversion'), value: 'funnel_conversion' },
@@ -94,14 +95,25 @@ const axisCharts = [
   { label: __('Lost Deal Reasons'), value: 'lost_deal_reasons' },
   { label: __('Deals by Territory'), value: 'deals_by_territory' },
   { label: __('Deals by Salesperson'), value: 'deals_by_salesperson' },
-]
+])
 
 const donutChart = ref('deals_by_stage_donut')
-const donutCharts = [
+const donutCharts = reactive([
   { label: __('Deals by Stage'), value: 'deals_by_stage_donut' },
   { label: __('Leads by Source'), value: 'leads_by_source' },
   { label: __('Deals by Source'), value: 'deals_by_source' },
-]
+])
+
+// GAMCS E7: charts contributed by gamcs_crm join the picker lists
+gamcsResource({
+  url: 'gamcs_crm.api.dashboard.get_chart_options',
+  auto: true,
+  onSuccess(o) {
+    numberCharts.push(...o.number_chart)
+    axisCharts.push(...o.axis_chart)
+    donutCharts.push(...o.donut_chart)
+  },
+})
 
 async function addChart() {
   show.value = false

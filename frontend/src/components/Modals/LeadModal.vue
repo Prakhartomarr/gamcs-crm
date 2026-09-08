@@ -42,9 +42,17 @@
       </div>
     </template>
   </Dialog>
+  <DuplicateModal
+    v-if="showDuplicates"
+    v-model="showDuplicates"
+    :matches="duplicates"
+    @proceed="createAnyway"
+  /><!-- GAMCS F11 -->
 </template>
-
 <script setup>
+// GAMCS F11: ask the server for probable duplicates before inserting; "Create anyway" records the override
+import DuplicateModal from '@/components/Modals/DuplicateModal.vue'
+import { call as checkDuplicatesCall } from 'frappe-ui'
 import EditIcon from '@/components/Icons/EditIcon.vue'
 import FieldLayout from '@/components/FieldLayout/FieldLayout.vue'
 import { usersStore } from '@/stores/users'
@@ -104,6 +112,23 @@ const tabs = createResource({
   },
 })
 
+const duplicates = ref([]) // GAMCS F11
+const showDuplicates = ref(false)
+async function hasDuplicates() {
+  if (lead.doc.duplicate_override_of) return false
+  const matches = await checkDuplicatesCall('gamcs_crm.api.duplicates.check', {
+    doctype: 'CRM Lead',
+    values: lead.doc,
+  })
+  if (!matches?.length) return false
+  duplicates.value = matches
+  showDuplicates.value = true
+  return true
+}
+function createAnyway(ref) {
+  lead.doc.duplicate_override_of = ref
+  createNewLead()
+}
 const createLead = createResource({
   url: 'frappe.client.insert',
 })
@@ -114,6 +139,7 @@ async function createNewLead() {
   }
 
   await triggerOnBeforeCreate?.()
+  if (await hasDuplicates()) return // GAMCS F11
 
   createLead.submit(
     {
