@@ -1,3 +1,4 @@
+import './frappeUiConfig' // must stay the first import, see file
 import './index.css'
 
 import { createApp } from 'vue'
@@ -18,7 +19,6 @@ import {
   Dialog,
   Alert,
   Badge,
-  setConfig,
   frappeRequest,
   FeatherIcon,
 } from 'frappe-ui'
@@ -45,7 +45,6 @@ let pinia = createPinia()
 
 let app = createApp(App)
 
-setConfig('resourceFetcher', frappeRequest)
 app.use(FrappeUI)
 app.use(spritePlugin)
 app.use(pinia)
