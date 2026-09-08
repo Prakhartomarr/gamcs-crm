@@ -98,6 +98,27 @@
           :label="__('PO received')"
           v-model="form.po_received"
         />
+        <div
+          v-if="form.referral"
+          class="col-span-2 rounded border p-3 text-base"
+          data-testid="won-fee"
+        >
+          <div class="mb-1 text-sm text-ink-gray-5">
+            {{ __('Referral fee to {0}', [form.referral.partner]) }}
+          </div>
+          <div class="flex gap-8">
+            <div>
+              <span class="text-ink-gray-5">{{ __('Base ({0})', [form.referral.base]) }}</span>
+              <span class="ml-2 font-medium text-ink-gray-9">{{ money(form.referral.base_amount) }}</span>
+            </div>
+            <div>
+              <span class="text-ink-gray-5">{{
+                form.referral.fee_type === 'Percentage' ? __('Fee ({0}%)', [form.referral.pct]) : __('Fixed fee')
+              }}</span>
+              <span class="ml-2 font-medium text-ink-gray-9">{{ money(form.referral.fee_amount) }}</span>
+            </div>
+          </div>
+        </div>
         <FormControl
           class="col-span-2"
           type="textarea"
