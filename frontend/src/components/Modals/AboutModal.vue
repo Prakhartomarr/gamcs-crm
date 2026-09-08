@@ -1,11 +1,23 @@
+<!-- GAMCS: About panel reads brand from FCRM Settings, shows our versions and links to the licences page -->
 <template>
   <Dialog v-model:open="show" :size="'sm'">
     <template #body>
       <div class="p-4 pt-5">
         <div class="flex justify-center">
           <div class="flex flex-col items-center">
-            <CRMLogo class="mb-3 size-12" />
-            <h3 class="text-2xl-semibold text-ink-gray-9">Frappe CRM</h3>
+            <img
+              v-if="brand.logo"
+              :src="brand.logo"
+              class="mb-3 size-12 rounded-lg"
+              :alt="brand.name"
+            />
+            <CRMLogo v-else class="mb-3 size-12" />
+            <h3 class="text-2xl-semibold text-ink-gray-9">
+              {{ brand.name || __('CRM') }}
+            </h3>
+            <p v-if="versions.data" class="mt-1 text-sm text-ink-gray-6">
+              {{ __('Version {0}', [versions.data.gamcs_crm]) }}
+            </p>
           </div>
         </div>
         <hr class="border-t my-3 mx-2" />
@@ -29,7 +41,15 @@
         </div>
         <hr class="border-t my-3 mx-2" />
         <p class="text-sm text-ink-gray-6 px-2 mt-2">
-          © Frappe Technologies Pvt. Ltd. and contributors
+          © GA Management Consultants LLP
+        </p>
+        <p v-if="versions.data" class="text-xs text-ink-gray-5 px-2 mt-1">
+          {{
+            __('Built on open-source components (Frappe CRM {0}, Frappe {1}); see licences.', [
+              versions.data.crm,
+              versions.data.frappe,
+            ])
+          }}
         </p>
       </div>
     </template>
@@ -37,39 +57,31 @@
 </template>
 <script setup>
 import CRMLogo from '@/components/Icons/CRMLogo.vue'
-import LucideGlobe from '~icons/lucide/globe'
-import LucideGitHub from '~icons/lucide/github'
-import LucideHeadset from '~icons/lucide/headset'
+import { getSettings } from '@/stores/settings'
+import LucideScale from '~icons/lucide/scale'
 import LucideBug from '~icons/lucide/bug'
-import LucideBookOpen from '~icons/lucide/book-open'
+import { createResource } from 'frappe-ui'
+
+const { brand } = getSettings()
 
 let show = defineModel({ type: Boolean })
 
+const versions = createResource({
+  url: 'gamcs_crm.api.about.get_versions',
+  cache: 'gamcs-versions',
+  auto: true,
+})
+
 let links = [
   {
-    label: __('Website'),
-    url: 'https://frappe.io/crm',
-    icon: LucideGlobe,
-  },
-  {
-    label: __('GitHub Repository'),
-    url: 'https://github.com/frappe/crm',
-    icon: LucideGitHub,
-  },
-  {
-    label: __('Documentation'),
-    url: 'https://docs.frappe.io/crm',
-    icon: LucideBookOpen,
+    label: __('Open-source licences'),
+    url: '/licences',
+    icon: LucideScale,
   },
   {
     label: __('Report an Issue'),
-    url: 'https://github.com/frappe/crm/issues',
+    url: 'https://github.com/Prakhartomarr/gamcs_crm/issues',
     icon: LucideBug,
-  },
-  {
-    label: __('Contact Support'),
-    url: 'https://support.frappe.io',
-    icon: LucideHeadset,
   },
 ]
 </script>

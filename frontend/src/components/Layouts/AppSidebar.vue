@@ -224,6 +224,7 @@ import {
   useTelemetry,
 } from 'frappe-ui/frappe'
 import router from '@/router'
+import { getSettings } from '@/stores/settings' // GAMCS
 import { useStorage } from '@vueuse/core'
 import { useDemoData } from '@/composables/demoData'
 import { ref, reactive, computed, markRaw, onMounted, watch } from 'vue'
@@ -234,6 +235,7 @@ const props = defineProps({
 })
 
 const route = useRoute()
+const { brand } = getSettings() // GAMCS
 
 const { getPinnedViews, getPublicViews } = viewsStore()
 const { toggle: toggleNotificationPanel } = notificationsStore()
@@ -719,7 +721,7 @@ const articles = ref([
     ],
   },
   {
-    title: __('Frappe CRM mobile'),
+    title: __('{0} mobile', [brand.name || __('CRM')]), // GAMCS
     opened: false,
     subArticles: [
       { name: 'mobile-app-installation', title: __('Mobile App Installation') },
