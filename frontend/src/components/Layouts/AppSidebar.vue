@@ -233,7 +233,6 @@ import {
   useTelemetry,
 } from 'frappe-ui/frappe'
 import router from '@/router'
-import { getSettings } from '@/stores/settings' // GAMCS
 import LucideHandshake from '~icons/lucide/handshake' // GAMCS
 import LucideListChecks from '~icons/lucide/list-checks' // GAMCS
 import { createResource } from 'frappe-ui' // GAMCS
@@ -247,7 +246,6 @@ const props = defineProps({
 })
 
 const route = useRoute()
-const { brand } = getSettings() // GAMCS
 // GAMCS F2: sidebar badge = overdue + due today + needs next action
 const followUpCounts = createResource({
   url: 'gamcs_crm.api.follow_ups.get_follow_ups',
@@ -756,7 +754,7 @@ const articles = ref([
     ],
   },
   {
-    title: __('{0} mobile', [brand.name || __('CRM')]), // GAMCS
+    title: __('Frappe CRM mobile'),
     opened: false,
     subArticles: [
       { name: 'mobile-app-installation', title: __('Mobile App Installation') },

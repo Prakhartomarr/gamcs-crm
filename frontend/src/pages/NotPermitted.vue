@@ -8,11 +8,9 @@
       </h1>
       <div class="border-t w-full my-[15px]" />
       <p class="text-ink-gray-4 text-p-base">
-        <!-- GAMCS: brand from FCRM Settings -->
         {{
           __(
-            'You do not have enough permissions to access {0}. Please contact your administrator if you believe this is an error.',
-            [brand.name || __('the CRM')],
+            'You do not have enough permissions to access Frappe CRM. Please contact your administrator if you believe this is an error.',
           )
         }}
       </p>
@@ -28,7 +26,5 @@
 </template>
 <script setup>
 import { sessionStore } from '@/stores/session'
-import { getSettings } from '@/stores/settings'
 const { logout } = sessionStore()
-const { brand } = getSettings() // GAMCS
 </script>

@@ -49,7 +49,14 @@
       class="flex flex-1 overflow-hidden flex-col [&_[role='tab']]:px-0 [&_[role='tab']]:shrink-0 [&_[role='tablist']]:px-5 [&_[role='tablist']::-webkit-scrollbar]:h-0 [&_[role='tablist']]:min-h-[45px] [&_[role='tablist']]:gap-7.5 [&_[role='tabpanel']:not([hidden])]:flex [&_[role='tabpanel']:not([hidden])]:grow"
     >
       <template #tab-panel>
+        <ProposalsTab
+          v-if="tabs[tabIndex]?.name === 'Proposals'"
+          :deal="dealId"
+          :currency="doc.currency"
+          @changed="reloadResources"
+        /><!-- GAMCS F6 -->
         <Activities
+          v-else
           ref="activities"
           v-model:reload="reload"
           v-model:tabIndex="tabIndex"
@@ -321,6 +328,21 @@
     :docname="dealId"
     @logged="() => activities?.all_activities?.reload()"
   /><!-- GAMCS F15 -->
+  <WonModal
+    v-if="showWonModal"
+    v-model="showWonModal"
+    :dealId="dealId"
+    :status="wonStatus"
+    @won="afterWon"
+    @cancel="cancelWon"
+  /><!-- GAMCS F7 -->
+  <ManualRateModal
+    v-if="showManualRate"
+    v-model="showManualRate"
+    :dealId="dealId"
+    :currency="manualRateCurrency"
+    @saved="afterManualRate"
+  /><!-- GAMCS D29 -->
   <FilesUploader
     v-model="showFilesUploader"
     doctype="CRM Deal"
@@ -373,6 +395,10 @@ import OrganizationModal from '@/components/Modals/OrganizationModal.vue'
 import LostReasonModal from '@/components/Modals/LostReasonModal.vue'
 import AssignTo from '@/components/AssignTo.vue'
 import QuickLog from '@/components/QuickLog.vue' // GAMCS
+import WonModal from '@/components/Modals/WonModal.vue' // GAMCS F7
+import ManualRateModal from '@/components/Modals/ManualRateModal.vue' // GAMCS D29
+import ProposalsTab from '@/components/Proposals/ProposalsTab.vue' // GAMCS F6
+import LucideFileText from '~icons/lucide/file-text' // GAMCS
 import FilesUploader from '@/components/FilesUploader/FilesUploader.vue'
 import ContactModal from '@/components/Modals/ContactModal.vue'
 import Link from '@/components/Controls/Link.vue'
@@ -529,6 +555,36 @@ const reload = ref(false)
 const showOrganizationModal = ref(false)
 const showFilesUploader = ref(false)
 const showQuickLog = ref(false) // GAMCS
+// GAMCS F7: a Won-type status opens the onboarding dialog; the server refuses Won without it
+const showWonModal = ref(false)
+const wonStatus = ref('')
+function openWonDialogIfNeeded(status) {
+  if (getDealStatus(status)?.type !== 'Won' || doc.value.engagement) return false
+  wonStatus.value = status
+  showWonModal.value = true
+  return true
+}
+function cancelWon() {
+  doc.value.status = document.originalDoc?.status || doc.value.status
+}
+function afterWon() {
+  document.reload()
+  reload.value = true
+  sections.reload()
+}
+// GAMCS D29: an unreachable rate service asks for the rate instead of failing the save
+const showManualRate = ref(false)
+const manualRateCurrency = ref('')
+function askManualRate(err, currency) {
+  if (err?.exc_type !== 'ExchangeRateUnavailable') return false
+  manualRateCurrency.value = currency
+  showManualRate.value = true
+  return true
+}
+function afterManualRate() {
+  document.reload()
+  reload.value = true
+}
 const _organization = ref({})
 
 const breadcrumbs = computed(() => {
@@ -600,6 +656,11 @@ const tabs = computed(() => {
       name: 'Data',
       label: __('Data'),
       icon: DetailsIcon,
+    },
+    {
+      name: 'Proposals', // GAMCS F6
+      label: __('Proposals'),
+      icon: LucideFileText,
     },
     {
       name: 'Calls',
@@ -758,6 +819,7 @@ function triggerCall() {
 
 async function triggerStatusChange(value) {
   await triggerOnChange('status', value)
+  if (openWonDialogIfNeeded(value)) return // GAMCS F7
   setLostReason()
 }
 
@@ -783,6 +845,7 @@ function updateField(name, value) {
       } else {
         doc.value[name] = oldValues
       }
+      if (askManualRate(err, name === 'currency' ? value : doc.value.currency)) return // GAMCS D29
       toast.error(err.messages?.[0] || __('Error updating field'))
     },
   })
@@ -797,9 +860,9 @@ const activities = ref(null)
 function openEmailBox() {
   let currentTab = tabs.value[tabIndex.value]
   if (!['Emails', 'Comments', 'Activities'].includes(currentTab.name)) {
-    activities.value.changeTabTo('emails')
+    activities.value?.changeTabTo('emails')
   }
-  nextTick(() => (activities.value.emailBox.show = true))
+  nextTick(() => activities.value && (activities.value.emailBox.show = true))
 }
 
 function statusLabel(status) {
@@ -825,6 +888,7 @@ function setLostReason() {
 }
 
 function beforeStatusChange(data) {
+  if (Object.hasOwn(data ?? {}, 'status') && openWonDialogIfNeeded(data.status)) return // GAMCS F7
   if (
     Object.hasOwn(data ?? {}, 'status') &&
     getDealStatus(data.status).type == 'Lost'
@@ -833,6 +897,12 @@ function beforeStatusChange(data) {
   } else {
     document.save.submit(null, {
       onSuccess: () => reloadResources(data),
+      onError: (err) => {
+        // GAMCS D29
+        const attempted = doc.value.currency
+        doc.value.currency = document.originalDoc?.currency
+        if (!askManualRate(err, attempted)) toast.error(err.messages?.[0] || __('Error saving'))
+      },
     })
   }
 }

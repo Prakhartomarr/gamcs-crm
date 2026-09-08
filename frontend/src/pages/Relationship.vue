@@ -102,7 +102,7 @@
         <div class="mb-2 text-sm text-ink-gray-5">
           {{ __('Opportunities from this partner') }}
         </div>
-        <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="grid grid-cols-5 gap-2 text-center">
           <div>
             <div
               data-testid="rollup-count"
@@ -120,11 +120,21 @@
           </div>
           <div>
             <div class="text-2xl-semibold text-ink-gray-9">
+              {{ inr(opportunities.data?.fees_accrued) }}
+            </div>
+            <div class="text-sm text-ink-gray-5">{{ __('Fees accrued') }}</div>
+          </div>
+          <div>
+            <div class="text-2xl-semibold text-ink-gray-9">
+              {{ inr(opportunities.data?.fees_paid) }}
+            </div>
+            <div class="text-sm text-ink-gray-5">{{ __('Fees paid') }}</div>
+          </div>
+          <div>
+            <div class="text-2xl-semibold text-ink-gray-9">
               {{ inr(opportunities.data?.fees_due) }}
             </div>
-            <div class="text-sm text-ink-gray-5">
-              {{ __('Fees due (INR)') }}
-            </div>
+            <div class="text-sm text-ink-gray-5">{{ __('Fees due') }}</div>
           </div>
         </div>
         <div

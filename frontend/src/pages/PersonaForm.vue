@@ -20,9 +20,6 @@ import { useTelemetry } from 'frappe-ui/frappe'
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { PERSONA_DONE_KEY } from '@/router'
-import { getSettings } from '@/stores/settings' // GAMCS
-
-const { brand } = getSettings() // GAMCS
 
 const router = useRouter()
 const { capture } = useTelemetry()
@@ -108,7 +105,7 @@ const questions = computed(() => [
   },
   {
     key: 'team_size',
-    title: __('How many people will use {0}?', [brand.name || __('the CRM')]), // GAMCS
+    title: __('How many people will use Frappe CRM?'),
     options: [
       { label: __('Just me'), value: 'just_me' },
       { label: __('2–5'), value: '2_5' },
@@ -132,5 +129,5 @@ const questions = computed(() => [
   },
 ])
 
-usePageMeta(() => ({ title: __('Welcome to {0}', [brand.name || __('the CRM')]) })) // GAMCS
+usePageMeta(() => ({ title: __('Welcome to Frappe CRM') }))
 </script>
