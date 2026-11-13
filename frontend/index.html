@@ -8,7 +8,7 @@
     />
     <title>GAMCS CRM</title>
     <!-- GAMCS: brand theme tokens (BRANDING.md Layer 2) -->
-    <link rel="stylesheet" href="/assets/gamcs_crm/css/gamcs_brand.css" />
+    <link rel="stylesheet" href="/assets/gamcs_crm/css/gamcs_brand.css?v={{ frappe.db.get_default('gamcs_brand_ver') or '' }}" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="GAMCS CRM" />
     <meta name="apple-mobile-web-app-status-bar-style" content="white" />

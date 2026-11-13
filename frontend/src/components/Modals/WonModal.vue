@@ -21,7 +21,7 @@
             {{ __('Expected annual revenue {0}. The engagement is set up and {1} owns delivery.', [money(done.acv ?? form.expected_annual_revenue), ownerName]) }}
           </p>
         </div>
-        <dl class="grid w-full grid-cols-2 gap-4 rounded-2xl bg-[var(--gamcs-ice)] p-4 sm:grid-cols-3">
+        <dl class="grid w-full grid-cols-2 gap-4 rounded-2xl gamcs-tint p-4 sm:grid-cols-3">
           <div>
             <dt class="text-sm text-ink-gray-6">{{ __('Final value') }}</dt>
             <dd class="gamcs-num text-lg font-semibold text-ink-gray-9">{{ money(form.final_value) }}</dd>

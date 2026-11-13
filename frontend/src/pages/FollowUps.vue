@@ -267,7 +267,7 @@ function dueText(date) {
 }
 function dueClass(date) {
   const n = daysFromToday(date)
-  return n !== null && n < 0 ? 'font-medium text-ink-red-6' : ''
+  return n !== null && n < 0 ? 'gamcs-overdue' : ''
 }
 
 function routeFor(row) {

@@ -4,7 +4,7 @@
     <template #default>
       <div v-if="!suggestion.data" class="py-6 text-center text-ink-gray-5">{{ __('Loading') }}</div>
       <div v-else data-testid="reconcile-dialog">
-        <div class="mb-4 grid grid-cols-1 gap-4 rounded-2xl bg-[var(--gamcs-ice)] p-4 text-base sm:grid-cols-3">
+        <div class="mb-4 grid grid-cols-1 gap-4 rounded-2xl gamcs-tint p-4 text-base sm:grid-cols-3">
           <div>
             <div class="text-sm text-ink-gray-5">{{ __('Accepted final value') }}</div>
             <div class="font-medium text-ink-gray-9">{{ money(suggestion.data.amount) }}</div>

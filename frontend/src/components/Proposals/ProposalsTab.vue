@@ -47,11 +47,11 @@
             >{{ money(p.amount) }}</span
           >
           <span class="text-ink-gray-6">{{ formatDay(p.proposal_date) }}</span>
-          <span class="gamcs-pill" :class="tone[p.approval_status] || 'gamcs-pill-yellow'">
+          <span class="gamcs-pill" :class="tone[p.approval_status] || 'gamcs-pill-yellow'" data-testid="proposal-approval">
             <span class="opacity-75">{{ __('Approval') }}:</span>
             <span>{{ __(p.approval_status) }}</span>
           </span>
-          <span class="gamcs-pill" :class="tone[p.client_status] || 'gamcs-pill-gray'">
+          <span class="gamcs-pill" :class="tone[p.client_status] || 'gamcs-pill-gray'" data-testid="proposal-client">
             <span class="opacity-75">{{ __('Client') }}:</span>
             <span>{{ __(p.client_status) }}</span>
           </span>

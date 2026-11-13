@@ -19,15 +19,15 @@
         v-for="card in cards"
         :key="card.key"
         :to="{ name: 'FollowUps', hash: '#' + card.key }"
-        class="gamcs-card flex flex-col gap-3 p-5 transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+        class="gamcs-card flex flex-col justify-between gap-3 p-4 transition-shadow sm:p-5 focus-visible:ring-2 focus-visible:ring-outline-gray-3"
         :class="card.highlight ? 'gamcs-kpi-highlight' : ''"
       >
         <div class="flex items-center justify-between gap-2">
-          <span class="text-base font-medium text-ink-gray-7">
+          <span class="min-w-0 text-base font-medium leading-snug text-ink-gray-7">
             {{ card.label }}
           </span>
           <span
-            class="gamcs-pill"
+            class="gamcs-pill hidden shrink-0 lg:inline-flex"
             :class="card.highlight ? 'gamcs-pill-dark' : 'gamcs-pill-soft'"
           >
             {{ card.hint }}

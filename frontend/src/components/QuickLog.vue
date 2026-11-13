@@ -58,7 +58,7 @@
           />
         </fieldset>
 
-        <fieldset class="flex flex-col gap-4 rounded-2xl bg-[var(--gamcs-ice)] p-4">
+        <fieldset class="flex flex-col gap-4 rounded-2xl gamcs-tint p-4">
           <legend class="sr-only">{{ __("What's next") }}</legend>
           <div class="text-base font-semibold text-ink-gray-8" aria-hidden="true">
             {{ __("What's next") }}

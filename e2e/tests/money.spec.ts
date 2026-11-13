@@ -89,10 +89,10 @@ test.describe('Money: commercials, proposals, Won and Lost', () => {
 
 		await v1.getByRole('button', { name: 'Approval' }).click()
 		await page.getByRole('menuitem', { name: 'Approved' }).click()
-		await expect(v1.getByText('Approved')).toBeVisible()
+		await expect(v1.getByTestId('proposal-approval')).toContainText('Approved')
 		await v1.getByRole('button', { name: 'Client status' }).click()
 		await page.getByRole('menuitem', { name: 'Sent', exact: true }).click()
-		await expect(v1.getByText('Sent', { exact: true })).toBeVisible()
+		await expect(v1.getByTestId('proposal-client')).toContainText('Sent')
 
 		await tab.getByRole('button', { name: 'Revise latest' }).click()
 		const amount = page.getByTestId('proposal-form').getByLabel('Amount (excl. tax)')
@@ -101,12 +101,12 @@ test.describe('Money: commercials, proposals, Won and Lost', () => {
 		await page.getByRole('dialog').getByRole('button', { name: 'Save', exact: true }).click()
 		const v2 = tab.getByTestId('proposal-v2')
 		await expect(v2).toBeVisible()
-		await expect(v1.getByText('Revised')).toBeVisible()
+		await expect(v1.getByTestId('proposal-client')).toContainText('Revised')
 		await v2.getByRole('button', { name: 'Approval' }).click()
 		await page.getByRole('menuitem', { name: 'Approved' }).click()
 		await v2.getByRole('button', { name: 'Client status' }).click()
 		await page.getByRole('menuitem', { name: 'Accepted' }).click()
-		await expect(v2.getByText('Accepted')).toBeVisible()
+		await expect(v2.getByTestId('proposal-client')).toContainText('Accepted')
 
 		// D42: the reconcile dialog opens with the one-field change that makes TCV equal the accepted amount
 		const reconcile = page.getByTestId('reconcile-dialog')

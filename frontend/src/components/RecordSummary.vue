@@ -24,10 +24,10 @@
               class="block h-2 w-full rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 disabled:cursor-default"
               :class="
                 i === position
-                  ? 'bg-[var(--gamcs-yellow)]'
+                  ? 'gamcs-track-current'
                   : position >= 0 && i < position
-                    ? 'bg-[var(--gamcs-navy)]'
-                    : 'bg-surface-gray-3 hover:bg-surface-gray-4'
+                    ? 'gamcs-track-done'
+                    : 'gamcs-track-todo hover:opacity-80'
               "
               :aria-label="__('Move to {0}', [step.label])"
               :aria-current="i === position ? 'step' : undefined"
