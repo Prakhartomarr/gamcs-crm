@@ -46,7 +46,7 @@
         :label="__('Log')"
         icon-left="lucide-plus"
         :aria-label="__('Log activity')"
-        @click="showQuickLog = true"
+        @click="openQuickLog()"
       /><!-- GAMCS F15 on mobile (D13) -->
       <CustomActions
         v-if="document._actions?.length"
@@ -94,6 +94,9 @@
             :facts="leadFacts"
             :showLog="false"
             stacked
+            :phone="recordWhatsApp(doc)"
+            :linkedin="doc.linkedin"
+            @log="openQuickLog"
           />
           <SLASection
             v-if="doc.sla_status"
@@ -147,6 +150,7 @@
   />
   <QuickLog
     v-model="showQuickLog"
+    :defaults="quickLogDefaults"
     doctype="CRM Lead"
     :docname="leadId"
     @logged="() => document.reload()"
@@ -174,10 +178,17 @@ import WhatsAppIcon from '@/components/Icons/WhatsAppIcon.vue'
 import IndicatorIcon from '@/components/Icons/IndicatorIcon.vue'
 import LostReasonModal from '@/components/Modals/LostReasonModal.vue'
 import QuickLog from '@/components/QuickLog.vue' // GAMCS
+import { recordWhatsApp } from '@/utils/channels' // GAMCS L3
 import RecordSummary from '@/components/RecordSummary.vue' // GAMCS Q29
 import { leadFacts as gamcsLeadFacts } from '@/utils/gamcs' // GAMCS Q29
 import { ref as gamcsRef } from 'vue' // GAMCS
 const showQuickLog = gamcsRef(false) // GAMCS F15
+// GAMCS L3: the header's WhatsApp / LinkedIn buttons open the quick-log pre-set to that type
+const quickLogDefaults = gamcsRef({})
+function openQuickLog(type) {
+  quickLogDefaults.value = typeof type === 'string' ? { activity_type: type } : {}
+  showQuickLog.value = true
+}
 import LayoutHeader from '@/components/LayoutHeader.vue'
 import Activities from '@/components/Activities/Activities.vue'
 import AssignTo from '@/components/AssignTo.vue'

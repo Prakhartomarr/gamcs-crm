@@ -45,7 +45,7 @@
       <Button
         :label="__('Log activity')"
         icon-left="lucide-plus"
-        @click="showQuickLog = true"
+        @click="openQuickLog()"
       /><!-- GAMCS F15 on mobile (D13) -->
       <CustomActions
         v-if="document._actions?.length"
@@ -79,6 +79,9 @@
             :facts="dealFacts"
             :showLog="false"
             stacked
+            :phone="recordWhatsApp(doc)"
+            :linkedin="doc.linkedin"
+            @log="openQuickLog"
           />
           <SLASection
             v-if="doc.sla_status"
@@ -286,6 +289,7 @@
   <!-- GAMCS: the same Won, reconcile and quick-log dialogs as desktop (D13: mobile web is the mobile app) -->
   <QuickLog
     v-model="showQuickLog"
+    :defaults="quickLogDefaults"
     doctype="CRM Deal"
     :docname="dealId"
     @logged="
@@ -346,6 +350,7 @@ import IndicatorIcon from '@/components/Icons/IndicatorIcon.vue'
 import ArrowUpRightIcon from '@/components/Icons/ArrowUpRightIcon.vue'
 import FileTextIcon from '@/components/Icons/FileTextIcon.vue'
 import QuickLog from '@/components/QuickLog.vue' // GAMCS
+import { recordWhatsApp } from '@/utils/channels' // GAMCS L3
 import RecordSummary from '@/components/RecordSummary.vue' // GAMCS Q29
 import { dealFacts as gamcsDealFacts } from '@/utils/gamcs' // GAMCS Q29
 import WonModal from '@/components/Modals/WonModal.vue' // GAMCS F7
@@ -757,6 +762,12 @@ const showWonModal = ref(false)
 const wonStatus = ref('')
 const showReconcile = ref(false)
 const showQuickLog = ref(false)
+// GAMCS L3: the header's WhatsApp / LinkedIn buttons open the quick-log pre-set to that type
+const quickLogDefaults = ref({})
+function openQuickLog(type) {
+  quickLogDefaults.value = typeof type === 'string' ? { activity_type: type } : {}
+  showQuickLog.value = true
+}
 
 async function triggerStatusChange(value) {
   if (getDealStatus(value)?.type === 'Won' && !doc.value.engagement) {

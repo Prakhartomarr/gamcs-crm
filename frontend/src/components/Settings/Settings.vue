@@ -71,6 +71,7 @@ import InviteUserPage from '@/components/Settings/InviteUserPage.vue'
 import ProfilePage from '@/components/Settings/Profile/ProfilePage.vue'
 import PreferencesSettings from '@/components/Settings/PreferencesSettings.vue'
 import NotificationSettings from '@/components/Settings/NotificationSettings.vue' // GAMCS E46
+import ProposalSettings from '@/components/Settings/ProposalSettings.vue' // GAMCS L3
 import LucideBell from '~icons/lucide/bell' // GAMCS E46
 import WhatsAppSettings from '@/components/Settings/WhatsAppSettings.vue'
 import ERPNextSettings from '@/components/Settings/ERPNextSettings.vue'
@@ -159,6 +160,12 @@ const tabs = computed(() => {
           label: __('Brand'),
           icon: SparkleIcon,
           component: markRaw(BrandSettings),
+        },
+        {
+          label: __('Proposal template'), // GAMCS L3: generated proposal boilerplate + signing link
+          icon: 'file-text',
+          component: markRaw(ProposalSettings),
+          condition: () => isAdmin(),
         },
       ],
       condition: () => isManager(),

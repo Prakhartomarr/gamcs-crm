@@ -77,18 +77,22 @@
         </div>
         </template>
       </div>
-      <Button
-        v-if="showLog"
-        :label="__('Log activity')"
-        icon-left="lucide-plus"
-        class="self-start"
-        @click="emit('log')"
-      />
+      <div class="flex flex-wrap items-center gap-2">
+        <Button
+          v-if="showLog"
+          :label="__('Log activity')"
+          icon-left="lucide-plus"
+          @click="emit('log')"
+        />
+        <!-- GAMCS L3: WhatsApp / LinkedIn one-click logging (D15, D16) -->
+        <ChannelActions :phone="phone" :linkedin="linkedin" @log="(t) => emit('log', t)" />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import ChannelActions from '@/components/ChannelActions.vue'
 import { usersStore } from '@/stores/users'
 import { daysFromToday, dueLabel, formatDay } from '@/utils/gamcs'
 import { Tooltip } from 'frappe-ui'
@@ -111,6 +115,9 @@ const props = defineProps({
   showLog: { type: Boolean, default: true },
   // mobile: 16px gutter to line up with the side-panel sections below
   stacked: { type: Boolean, default: false },
+  // GAMCS L3: the record's WhatsApp-capable number and LinkedIn profile, for the channel actions
+  phone: { type: String, default: '' },
+  linkedin: { type: String, default: '' },
 })
 const emit = defineEmits(['log'])
 const { getUser } = usersStore()

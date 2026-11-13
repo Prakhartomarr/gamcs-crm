@@ -51,7 +51,9 @@
         :nextActionDate="doc.next_action_date"
         :nextActionOwner="doc.next_action_owner"
         :facts="dealFacts"
-        @log="showQuickLog = true"
+        :phone="recordWhatsApp(doc)"
+        :linkedin="doc.linkedin"
+        @log="openQuickLog"
       />
       <Tabs
         ref="dealTabsRef"
@@ -363,6 +365,7 @@
   <QuickLog
     v-if="doc.name"
     v-model="showQuickLog"
+    :defaults="quickLogDefaults"
     doctype="CRM Deal"
     :docname="dealId"
     @logged="
@@ -447,6 +450,7 @@ import OrganizationModal from '@/components/Modals/OrganizationModal.vue'
 import LostReasonModal from '@/components/Modals/LostReasonModal.vue'
 import AssignTo from '@/components/AssignTo.vue'
 import QuickLog from '@/components/QuickLog.vue' // GAMCS
+import { recordWhatsApp } from '@/utils/channels' // GAMCS L3
 import RecordSummary from '@/components/RecordSummary.vue' // GAMCS
 import { formatMoney, dealFacts as gamcsDealFacts } from '@/utils/gamcs' // GAMCS
 import WonModal from '@/components/Modals/WonModal.vue' // GAMCS F7
@@ -609,6 +613,12 @@ const reload = ref(false)
 const showOrganizationModal = ref(false)
 const showFilesUploader = ref(false)
 const showQuickLog = ref(false) // GAMCS
+// GAMCS L3: the header's WhatsApp / LinkedIn buttons open the quick-log pre-set to that type
+const quickLogDefaults = ref({})
+function openQuickLog(type) {
+  quickLogDefaults.value = typeof type === 'string' ? { activity_type: type } : {}
+  showQuickLog.value = true
+}
 const dealFacts = computed(() => gamcsDealFacts(doc.value)) // GAMCS: shared with MobileDeal
 
 // GAMCS F7: a Won-type status opens the onboarding dialog; the server refuses Won without it

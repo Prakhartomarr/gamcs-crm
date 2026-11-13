@@ -65,7 +65,9 @@
         :nextActionOwner="doc.next_action_owner"
         :lockedTypes="['Won']"
         :facts="leadFacts"
-        @log="showQuickLog = true"
+        :phone="recordWhatsApp(doc)"
+        :linkedin="doc.linkedin"
+        @log="openQuickLog"
       />
       <Tabs
         v-model="activeTab"
@@ -241,6 +243,7 @@
   <QuickLog
     v-if="doc.name"
     v-model="showQuickLog"
+    :defaults="quickLogDefaults"
     doctype="CRM Lead"
     :docname="leadId"
     @logged="() => { activities?.all_activities?.reload(); document.reload() }"
@@ -294,6 +297,7 @@ import LayoutHeader from '@/components/LayoutHeader.vue'
 import Activities from '@/components/Activities/Activities.vue'
 import AssignTo from '@/components/AssignTo.vue'
 import QuickLog from '@/components/QuickLog.vue' // GAMCS
+import { recordWhatsApp } from '@/utils/channels' // GAMCS L3
 import RecordSummary from '@/components/RecordSummary.vue' // GAMCS
 import { leadFacts as gamcsLeadFacts } from '@/utils/gamcs' // GAMCS
 import FilesUploader from '@/components/FilesUploader/FilesUploader.vue'
@@ -357,6 +361,12 @@ const errorMessage = ref('')
 const showDeleteLinkedDocModal = ref(false)
 const showConvertToDealModal = ref(false)
 const showQuickLog = ref(false) // GAMCS
+// GAMCS L3: the header's WhatsApp / LinkedIn buttons open the quick-log pre-set to that type
+const quickLogDefaults = ref({})
+function openQuickLog(type) {
+  quickLogDefaults.value = typeof type === 'string' ? { activity_type: type } : {}
+  showQuickLog.value = true
+}
 const leadFacts = computed(() => gamcsLeadFacts(doc.value)) // GAMCS: shared with MobileLead
 
 const showFilesUploader = ref(false)

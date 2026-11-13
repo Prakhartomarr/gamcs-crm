@@ -63,8 +63,48 @@
           >
             <span class="lucide-file-text size-3.5" aria-hidden="true" />{{ __('PDF') }}
           </a>
+          <!-- GAMCS L3: e-signature state -->
+          <a
+            v-if="p.signed_document"
+            :href="p.signed_document"
+            target="_blank"
+            class="inline-flex items-center gap-1 text-sm text-ink-blue-link hover:underline"
+            data-testid="proposal-signed-pdf"
+          >
+            <span class="lucide-signature size-3.5" aria-hidden="true" />{{ __('Signed PDF') }}
+          </a>
+          <span
+            v-if="p.signature?.status === 'Pending'"
+            class="gamcs-pill gamcs-pill-yellow"
+            data-testid="proposal-signature"
+          >
+            {{ __('Awaiting signature') }}
+          </span>
+          <span
+            v-else-if="p.signature?.status === 'Signed'"
+            class="gamcs-pill gamcs-pill-soft"
+            data-testid="proposal-signature"
+          >
+            {{ __('Signed by {0}', [p.signature.signer_name]) }}
+          </span>
         </div>
-        <div class="flex gap-1">
+        <div class="flex flex-wrap gap-1">
+          <Tooltip v-if="canGenerate(p)" :text="__('Generate the PDF from the GAMCS template')">
+            <Button
+              :label="p.document ? __('Regenerate PDF') : __('Generate PDF')"
+              icon-left="lucide-file-down"
+              :loading="generating === p.name"
+              data-testid="proposal-generate"
+              @click="generatePdf(p)"
+            />
+          </Tooltip>
+          <Button
+            v-if="canSign(p)"
+            :label="p.signature?.status === 'Pending' ? __('New signing link') : __('Send for signature')"
+            icon-left="lucide-signature"
+            data-testid="proposal-send-signature"
+            @click="openSign(p)"
+          />
           <Dropdown v-if="isManager()" :options="approvalOptions(p)">
             <Button :label="__('Approval')" icon-right="lucide-chevron-down" />
           </Dropdown>
@@ -82,6 +122,65 @@
         </div>
       </div>
     </div>
+
+    <!-- GAMCS L3: send for signature; the link is shown once for the copy-link fallback -->
+    <Dialog v-model:open="showSign" :title="__('Send V{0} for signature', [signTarget?.version])">
+      <template #default>
+        <div v-if="!signResult" class="flex flex-col gap-4" data-testid="sign-form">
+          <p class="text-p-base text-ink-gray-7">
+            {{ __('The client opens a single-use link, reads the PDF, types their full name and ticks consent. Signing marks this version Accepted and attaches a signed copy with a certificate page.') }}
+          </p>
+          <FormControl
+            type="email"
+            :label="__('Client email')"
+            v-model="signEmail"
+            :placeholder="__('Leave blank to use the primary contact')"
+            :description="__('Without an outgoing email account you get a link to send yourself.')"
+          />
+          <ErrorMessage :message="signError" />
+        </div>
+        <div v-else class="flex flex-col gap-4" data-testid="sign-result">
+          <p class="text-p-base text-ink-gray-8">
+            {{
+              signResult.emailed
+                ? __('Emailed to {0}. You can also send the link yourself:', [signResult.signer_email])
+                : __('No email was sent. Copy the link and send it to the client:')
+            }}
+          </p>
+          <div class="flex items-center gap-2">
+            <input
+              readonly
+              :value="signResult.link"
+              class="h-8 min-w-0 flex-1 rounded-lg border border-outline-gray-2 bg-surface-gray-1 px-2 text-sm text-ink-gray-8"
+              data-testid="sign-link"
+              @focus="(e) => e.target.select()"
+            />
+            <Button :label="__('Copy link')" icon-left="lucide-copy" @click="copyLink" />
+          </div>
+          <p class="text-sm text-ink-gray-6">
+            {{ __('The link works once and expires on {0}. Sending a new link withdraws this one.', [formatDay(signResult.expires_on)]) }}
+          </p>
+        </div>
+      </template>
+      <template #actions>
+        <div class="flex justify-end gap-2">
+          <template v-if="!signResult">
+            <Button :label="__('Cancel')" @click="showSign = false" />
+            <Button variant="solid" :label="__('Create signing link')" :loading="signing" @click="sendForSignature" />
+          </template>
+          <template v-else>
+            <Button
+              v-if="signResult.request"
+              :label="__('Withdraw link')"
+              theme="red"
+              variant="subtle"
+              @click="withdraw"
+            />
+            <Button variant="solid" :label="__('Done')" @click="showSign = false" />
+          </template>
+        </div>
+      </template>
+    </Dialog>
 
     <Dialog
       v-model:open="showForm"
@@ -245,6 +344,78 @@ const clientOptions = (p) =>
   ['Draft', 'Sent', 'Under Discussion', 'Accepted', 'Rejected', 'Not Required']
     .filter((s) => s !== p.client_status)
     .map((s) => ({ label: s, onClick: () => apply(p.name, { client_status: s }) }))
+
+// GAMCS L3: generation and e-signature
+const FROZEN = ['Sent', 'Under Discussion', 'Revised', 'Accepted', 'Rejected']
+const canGenerate = (p) => !FROZEN.includes(p.client_status) || (isManager() && p.client_status !== 'Accepted')
+const canSign = (p) => ['Sent', 'Under Discussion'].includes(p.client_status) && p.document
+const generating = ref('')
+
+async function generatePdf(p) {
+  generating.value = p.name
+  try {
+    await call('gamcs_crm.api.esign.generate_pdf', { name: p.name })
+    toast.success(__('V{0} PDF generated and attached. Next: get it approved and send it.', [p.version]))
+    proposals.reload()
+    emit('changed')
+  } catch (e) {
+    toast.error(e.messages?.[0] || e.message)
+  } finally {
+    generating.value = ''
+  }
+}
+
+const showSign = ref(false)
+const signTarget = ref(null)
+const signEmail = ref('')
+const signError = ref('')
+const signing = ref(false)
+const signResult = ref(null)
+
+function openSign(p) {
+  signTarget.value = p
+  signEmail.value = p.signature?.signer_email || ''
+  signError.value = ''
+  signResult.value = null
+  showSign.value = true
+}
+
+async function sendForSignature() {
+  signing.value = true
+  signError.value = ''
+  try {
+    signResult.value = await call('gamcs_crm.api.esign.send_for_signature', {
+      proposal: signTarget.value.name,
+      email: signEmail.value || undefined,
+    })
+    proposals.reload()
+    emit('changed')
+  } catch (e) {
+    signError.value = e.messages?.[0] || e.message
+  } finally {
+    signing.value = false
+  }
+}
+
+async function copyLink() {
+  try {
+    await navigator.clipboard.writeText(signResult.value.link)
+    toast.success(__('Link copied. It works once.'))
+  } catch {
+    toast.error(__('Select the link and copy it.'))
+  }
+}
+
+async function withdraw() {
+  try {
+    await call('gamcs_crm.api.esign.revoke_request', { name: signResult.value.request })
+    toast.success(__('Link withdrawn. The client can no longer sign with it.'))
+    showSign.value = false
+    proposals.reload()
+  } catch (e) {
+    toast.error(e.messages?.[0] || e.message)
+  }
+}
 
 async function reviseLatest() {
   try {

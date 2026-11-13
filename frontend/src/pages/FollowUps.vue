@@ -167,6 +167,14 @@
                 :image="getUser(row.owner_user).user_image"
               />
             </Tooltip>
+            <!-- GAMCS L3: WhatsApp / LinkedIn one-click logging per row -->
+            <ChannelActions
+              compact
+              size="sm"
+              :phone="recordWhatsApp(row)"
+              :linkedin="row.linkedin"
+              @log="(t) => openLog(row, t)"
+            />
             <Button
               variant="subtle"
               :label="__('Log')"
@@ -184,6 +192,7 @@
     v-model="showLog"
     :doctype="logTarget.doctype"
     :docname="logTarget.name"
+    :defaults="logDefaults"
     @logged="data.reload()"
   />
 </template>
@@ -191,6 +200,8 @@
 <script setup>
 import LayoutHeader from '@/components/LayoutHeader.vue'
 import QuickLog from '@/components/QuickLog.vue'
+import ChannelActions from '@/components/ChannelActions.vue' // GAMCS L3
+import { recordWhatsApp } from '@/utils/channels'
 import LeadsIcon from '@/components/Icons/LeadsIcon.vue'
 import DealsIcon from '@/components/Icons/DealsIcon.vue'
 import LucideHandshake from '~icons/lucide/handshake'
@@ -280,8 +291,10 @@ function routeFor(row) {
 
 const showLog = ref(false)
 const logTarget = ref(null)
-function openLog(row) {
+const logDefaults = ref({})
+function openLog(row, type) {
   logTarget.value = row
+  logDefaults.value = type ? { activity_type: type } : {}
   showLog.value = true
 }
 </script>
