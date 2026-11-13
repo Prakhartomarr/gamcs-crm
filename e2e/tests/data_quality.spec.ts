@@ -60,7 +60,9 @@ test.describe('Data quality & visibility', () => {
 
 		await expect(page.getByText('Looks like a duplicate')).toBeVisible()
 		const list = page.getByTestId('duplicate-list')
-		await expect(list.getByText(first)).toBeVisible()
+		// the dialog names the match (no raw IDs) and links to it
+		await expect(list.getByText(`E2E Dup ${id}`, { exact: true })).toBeVisible()
+		await expect(list.locator(`a[href*="${first}"]`)).toBeVisible()
 		await expect(list.getByText('company')).toBeVisible()
 		await page.getByRole('button', { name: 'Create anyway' }).click()
 		await expect(page).toHaveURL(/\/crm\/leads\/CRM-LEAD/)

@@ -59,6 +59,9 @@ test.describe('Partner relationship happy path', () => {
 		const note = `E2E LinkedIn touch ${id}`
 		await rel.gotoDetail(relationship)
 		await rel.addComment(note)
+		// the Activity tab caches its feed; reload so it includes the comment just posted
+		await page.reload()
+		await page.waitForLoadState('networkidle')
 		await rel.openTab('Activity')
 		// the timeline folds a burst of same-minute changes into "Show +N changes"; open it
 		const folded = page.getByText(/Show \+\d+ changes/)
