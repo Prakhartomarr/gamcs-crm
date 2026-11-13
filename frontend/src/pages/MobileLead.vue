@@ -98,6 +98,13 @@
             :linkedin="doc.linkedin"
             @log="openQuickLog"
           />
+          <RecordEmailTools
+            doctype="CRM Lead"
+            :docname="leadId"
+            :title="doc.organization || doc.lead_name"
+            :recipient="doc.email"
+            @changed="() => ((reload = true), document.reload())"
+          /><!-- GAMCS E56/E57 -->
           <SLASection
             v-if="doc.sla_status"
             v-model="doc"
@@ -194,6 +201,7 @@ import Activities from '@/components/Activities/Activities.vue'
 import AssignTo from '@/components/AssignTo.vue'
 import SidePanelLayout from '@/components/SidePanelLayout.vue'
 import SLASection from '@/components/SLASection.vue'
+import RecordEmailTools from '@/components/EmailTools/RecordEmailTools.vue' // GAMCS E56/E57
 import CustomActions from '@/components/CustomActions.vue'
 import { setupCustomizations, isTranslatable } from '@/utils'
 import { getView } from '@/utils/view'

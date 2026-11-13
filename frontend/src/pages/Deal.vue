@@ -180,6 +180,13 @@
           </div>
         </div>
       </div>
+      <RecordEmailTools
+        doctype="CRM Deal"
+        :docname="dealId"
+        :title="title"
+        :recipient="doc.email"
+        @changed="() => ((reload = true), document.reload())"
+      /><!-- GAMCS E56/E57 -->
       <SLASection
         v-if="doc.sla_status"
         v-model="doc"
@@ -464,6 +471,7 @@ import Link from '@/components/Controls/Link.vue'
 import Section from '@/components/CollapsibleSection.vue'
 import SidePanelLayout from '@/components/SidePanelLayout.vue'
 import SLASection from '@/components/SLASection.vue'
+import RecordEmailTools from '@/components/EmailTools/RecordEmailTools.vue' // GAMCS E56/E57
 import CustomActions from '@/components/CustomActions.vue'
 import EnrichFromWebsite from '@/components/EnrichFromWebsite.vue'
 import {

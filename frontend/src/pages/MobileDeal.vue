@@ -83,6 +83,13 @@
             :linkedin="doc.linkedin"
             @log="openQuickLog"
           />
+          <RecordEmailTools
+            doctype="CRM Deal"
+            :docname="dealId"
+            :title="doc.organization || doc.lead_name"
+            :recipient="doc.email"
+            @changed="() => ((reload = true), document.reload())"
+          /><!-- GAMCS E56/E57 -->
           <SLASection
             v-if="doc.sla_status"
             v-model="doc"
@@ -367,6 +374,7 @@ import Section from '@/components/CollapsibleSection.vue'
 import Link from '@/components/Controls/Link.vue'
 import SidePanelLayout from '@/components/SidePanelLayout.vue'
 import SLASection from '@/components/SLASection.vue'
+import RecordEmailTools from '@/components/EmailTools/RecordEmailTools.vue' // GAMCS E56/E57
 import CustomActions from '@/components/CustomActions.vue'
 import { setupCustomizations, isTranslatable } from '@/utils'
 import { getView } from '@/utils/view'

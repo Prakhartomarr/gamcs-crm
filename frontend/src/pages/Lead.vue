@@ -210,6 +210,13 @@
           </div>
         </template>
       </FileUploader>
+      <RecordEmailTools
+        doctype="CRM Lead"
+        :docname="leadId"
+        :title="title"
+        :recipient="doc.email"
+        @changed="() => ((reload = true), document.reload())"
+      /><!-- GAMCS E56/E57 -->
       <SLASection
         v-if="doc.sla_status"
         v-model="doc"
@@ -303,6 +310,7 @@ import { leadFacts as gamcsLeadFacts } from '@/utils/gamcs' // GAMCS
 import FilesUploader from '@/components/FilesUploader/FilesUploader.vue'
 import SidePanelLayout from '@/components/SidePanelLayout.vue'
 import SLASection from '@/components/SLASection.vue'
+import RecordEmailTools from '@/components/EmailTools/RecordEmailTools.vue' // GAMCS E56/E57
 import CustomActions from '@/components/CustomActions.vue'
 import ConvertToDealModal from '@/components/Modals/ConvertToDealModal.vue'
 import EnrichFromWebsite from '@/components/EnrichFromWebsite.vue'

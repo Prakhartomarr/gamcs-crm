@@ -73,6 +73,8 @@ import PreferencesSettings from '@/components/Settings/PreferencesSettings.vue'
 import NotificationSettings from '@/components/Settings/NotificationSettings.vue' // GAMCS E46
 import ProposalSettings from '@/components/Settings/ProposalSettings.vue' // GAMCS L3
 import LucideBell from '~icons/lucide/bell' // GAMCS E46
+import ConnectionsSettings from '@/components/Settings/ConnectionsSettings.vue' // GAMCS E55/E57
+import LucideLink from '~icons/lucide/link' // GAMCS E55/E57
 import WhatsAppSettings from '@/components/Settings/WhatsAppSettings.vue'
 import ERPNextSettings from '@/components/Settings/ERPNextSettings.vue'
 import LeadSyncSourcePage from '@/components/Settings/LeadSyncing/LeadSyncSourcePage.vue'
@@ -131,6 +133,11 @@ const tabs = computed(() => {
           icon: LucideBell,
           component: markRaw(NotificationSettings),
         }, // GAMCS E46
+        {
+          label: __('Connections'),
+          icon: LucideLink,
+          component: markRaw(ConnectionsSettings),
+        }, // GAMCS E55/E57
       ],
     },
     {
