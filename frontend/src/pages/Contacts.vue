@@ -70,6 +70,7 @@
 </template>
 
 <script setup>
+import { formatPhone } from '@/utils/gamcs' // GAMCS
 import ViewBreadcrumbs from '@/components/ViewBreadcrumbs.vue'
 import CustomActions from '@/components/CustomActions.vue'
 import ContactsIcon from '@/components/Icons/ContactsIcon.vue'
@@ -149,6 +150,9 @@ const rows = computed(() => {
         _rows[row] = timestampCell(contact[row])
       }
     })
+    // GAMCS (UI_REVIEW U1): chunk Indian mobiles, +91 98765 43210
+    for (const f of ['mobile_no', 'phone', 'whatsapp_no'])
+      if (typeof _rows[f] === 'string') _rows[f] = formatPhone(_rows[f])
     return _rows
   })
 })

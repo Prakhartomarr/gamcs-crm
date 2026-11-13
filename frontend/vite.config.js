@@ -24,8 +24,9 @@ export default defineConfig(() => {
           name: 'GAMCS CRM', // GAMCS
           short_name: 'GAMCS CRM',
           start_url: '/crm',
-          description:
-            'Modern & 100% Open-source CRM tool to supercharge your sales operations',
+          description: 'GAMCS CRM', // GAMCS (UI_REVIEW U7)
+          theme_color: '#0A4169',
+          background_color: '#0F5E97', // matches the splash screens
           icons: [
             {
               src: '/assets/crm/manifest/manifest-icon-192.maskable.png',

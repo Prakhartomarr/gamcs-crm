@@ -101,14 +101,14 @@ import ShieldCheck from '~icons/lucide/shield-check'
 import LucideZap from '~icons/lucide/zap'
 import SlaConfig from './Sla/SlaConfig.vue'
 
-const { isManager, getUser } = usersStore()
+const { isManager, isAdmin, getUser } = usersStore()
 
 const user = computed(() => getUser() || {})
 
 const tabs = computed(() => {
   let _tabs = [
     {
-      label: __('User Configuration'),
+      label: __('You'), // GAMCS (UI_REVIEW U4): short, sentence-case group names
       items: [
         {
           label: __('Profile'),
@@ -133,7 +133,7 @@ const tabs = computed(() => {
       ],
     },
     {
-      label: __('System Configuration'),
+      label: __('Workspace'),
       items: [
         {
           label: __('General'),
@@ -151,6 +151,11 @@ const tabs = computed(() => {
           icon: MonitorCogIcon,
         },
         {
+          label: __('Home Actions'), // GAMCS: moved here from its one-item "Customization" group
+          component: markRaw(HomeActions),
+          icon: 'house',
+        },
+        {
           label: __('Brand'),
           icon: SparkleIcon,
           component: markRaw(BrandSettings),
@@ -159,7 +164,7 @@ const tabs = computed(() => {
       condition: () => isManager(),
     },
     {
-      label: __('User Management'),
+      label: __('Team'),
       items: [
         {
           label: __('Users'),
@@ -199,7 +204,7 @@ const tabs = computed(() => {
       ],
     },
     {
-      label: __('Automation & Rules'),
+      label: __('Automation'),
       items: [
         {
           label: __('Workflow Automations'),
@@ -231,17 +236,6 @@ const tabs = computed(() => {
       condition: () => isManager(),
     },
     {
-      label: __('Customization'),
-      items: [
-        {
-          label: __('Home Actions'),
-          component: markRaw(HomeActions),
-          icon: 'house',
-        },
-      ],
-      condition: () => isManager(),
-    },
-    {
       label: __('Integrations', null, 'FCRM'),
       items: [
         {
@@ -259,7 +253,8 @@ const tabs = computed(() => {
           label: __('ERPNext'),
           icon: ERPNextIcon,
           component: markRaw(ERPNextSettings),
-          condition: () => isManager(),
+          // GAMCS: ERPNext integration is out of scope (BRANDING.md Layer 3); Administrator only
+          condition: () => isAdmin(),
         },
         {
           label: __('Lead Syncing'),

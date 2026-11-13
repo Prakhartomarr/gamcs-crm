@@ -32,7 +32,7 @@
           :route="{ name: 'NewDataImport', params: { doctype: importDoctype } }"
         />
         <Button
-          v-if="docsLink"
+          v-if="docsLink && !docsLink.includes('frappe.io')"
           variant="outline"
           :label="__('Documentation')"
           iconLeft="lucide-external-link"
@@ -64,19 +64,18 @@ const props = defineProps({
   onCreate: { type: Function, default: null },
 })
 
+// GAMCS (UI_REVIEW U5): sentence case, one short line, no upstream docs link
+const lowerName = computed(() => __(props.name).toLowerCase())
 const computedTitle = computed(() => {
-  if (props.filtered) return __('No {0} Found', [__(props.name)])
-  return props.title ? props.title : __('No {0} Found', [__(props.name)])
+  if (props.filtered) return __('Nothing matches these filters')
+  return props.title ? props.title : __('No {0} yet', [lowerName.value])
 })
 
 const computedDescription = computed(() => {
   if (props.filtered) return __('Clear the filters to see all records.')
   return props.description
     ? props.description
-    : __(
-        'It appears that there are currently no {0} available. You can create more {0} by using the Create button.',
-        [__(props.name)],
-      )
+    : __('Create the first one, or import a spreadsheet.')
 })
 
 const widthClass = computed(() => {

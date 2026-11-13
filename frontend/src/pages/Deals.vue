@@ -234,6 +234,7 @@
 </template>
 
 <script setup>
+import { formatPhone } from '@/utils/gamcs' // GAMCS
 import UserAvatar from '@/components/UserAvatar.vue'
 import ViewBreadcrumbs from '@/components/ViewBreadcrumbs.vue'
 import MultipleAvatar from '@/components/MultipleAvatar.vue'
@@ -488,6 +489,9 @@ function parseRows(rows, columns = []) {
     _rows['_note_count'] = deal._note_count
     _rows['_task_count'] = deal._task_count
     _rows['_comment_count'] = deal._comment_count
+    // GAMCS (UI_REVIEW U1): chunk Indian mobiles, +91 98765 43210
+    for (const f of ['mobile_no', 'phone', 'whatsapp_no'])
+      if (typeof _rows[f] === 'string') _rows[f] = formatPhone(_rows[f])
     return _rows
   })
 }
@@ -508,7 +512,7 @@ function actions(itemName) {
     {
       icon: h(PhoneIcon, { class: 'h-4 w-4' }),
       label: __('Make a Call'),
-      onClick: () => makeCall(mobile_no),
+      onClick: () => makeCall(mobile_no.replace(/\s/g, '')),
       condition: () => mobile_no && callEnabled.value,
     },
     {
