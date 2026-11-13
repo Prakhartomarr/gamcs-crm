@@ -333,6 +333,15 @@
     @save="confirmKanbanLostReason"
     @cancel="cancelKanbanLostReason"
   />
+  <WonModal
+    v-if="showKanbanWonModal"
+    v-model="showKanbanWonModal"
+    :dealId="pendingKanbanMove?.item"
+    :status="pendingKanbanMove?.to"
+    @won="confirmKanbanWon"
+    @cancel="cancelKanbanWon"
+    @reconcile="reconcileFromKanbanWon"
+  /><!-- GAMCS F7: Kanban drop onto Won -->
 </template>
 <script setup>
 import Icon from '@/components/Icon.vue'
@@ -355,6 +364,7 @@ import FadedScrollableDiv from '@/components/FadedScrollableDiv.vue'
 import ColumnSettings from '@/components/ColumnSettings.vue'
 import KanbanSettings from '@/components/Kanban/KanbanSettings.vue'
 import LostReasonModal from '@/components/Modals/LostReasonModal.vue'
+import WonModal from '@/components/Modals/WonModal.vue' // GAMCS F7
 import { getSettings } from '@/stores/settings'
 import { globalStore } from '@/stores/global'
 import { viewsStore } from '@/stores/views'
@@ -424,6 +434,7 @@ const { getLeadStatus, getDealStatus } = statusesStore()
 
 const showKanbanLostReasonModal = ref(false)
 const pendingKanbanMove = ref(null)
+const showKanbanWonModal = ref(false) // GAMCS F7
 
 const list = defineModel({ type: Object, default: () => ({}) })
 const loadMore = defineModel('loadMore', { type: Boolean })
@@ -1342,8 +1353,39 @@ function cancelKanbanLostReason() {
   revertKanbanCardMove(data)
 }
 
+// GAMCS F7: a deal dropped onto a Won column opens the Won dialog; mark_won (server) moves it
+function confirmKanbanWon() {
+  let data = pendingKanbanMove.value
+  pendingKanbanMove.value = null
+  persistKanbanColumnOrder(data?.kanban_columns)
+  list.value.reload()
+}
+
+function cancelKanbanWon() {
+  let data = pendingKanbanMove.value
+  pendingKanbanMove.value = null
+  if (data) revertKanbanCardMove(data)
+}
+
+function reconcileFromKanbanWon() {
+  let data = pendingKanbanMove.value
+  showKanbanWonModal.value = false
+  cancelKanbanWon()
+  if (data) router.push({ name: 'Deal', params: { dealId: data.item } })
+}
+
 function updateKanbanSettings(data) {
   if (data.item && data.to) {
+    if (
+      props.doctype === 'CRM Deal' &&
+      view.value.column_field === 'status' &&
+      getKanbanStatusType(data.to) === 'Won' &&
+      getKanbanStatusType(data.from) !== 'Won'
+    ) {
+      pendingKanbanMove.value = data
+      showKanbanWonModal.value = true
+      return
+    } // GAMCS F7
     if (
       view.value.column_field === 'status' &&
       getKanbanStatusType(data.to) === 'Lost'

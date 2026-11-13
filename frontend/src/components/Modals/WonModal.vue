@@ -178,6 +178,7 @@ const show = defineModel({ type: Boolean })
 const form = reactive({})
 const error = ref('')
 const saving = ref(false)
+let done = false // closing after a successful confirm must not read as a cancel (Kanban reverts on cancel)
 
 const defaults = createResource({
   url: 'gamcs_crm.api.won.get_won_defaults',
@@ -196,6 +197,7 @@ function money(v) {
 }
 
 function cancel() {
+  if (done) return
   show.value = false
   emit('cancel')
 }
@@ -209,6 +211,7 @@ async function confirm() {
       values: { ...form, contract_signed: form.contract_signed ? 1 : 0, po_received: form.po_received ? 1 : 0 },
       status: props.status || undefined,
     })
+    done = true
     show.value = false
     toast.success(__('Won. Engagement {0} created', [out.engagement]))
     emit('won', out)
