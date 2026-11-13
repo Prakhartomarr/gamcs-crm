@@ -77,12 +77,14 @@
             :nextActionDate="doc.next_action_date"
             :nextActionOwner="doc.next_action_owner"
             :facts="dealFacts"
+            :qualification="dealQualification"
             :showLog="false"
             stacked
             :phone="recordWhatsApp(doc)"
             :linkedin="doc.linkedin"
             @log="openQuickLog"
           />
+          <RecordExtras doctype="CRM Deal" :docname="dealId" :doc="doc" /><!-- GAMCS E65 -->
           <RecordEmailTools
             doctype="CRM Deal"
             :docname="dealId"
@@ -359,7 +361,12 @@ import FileTextIcon from '@/components/Icons/FileTextIcon.vue'
 import QuickLog from '@/components/QuickLog.vue' // GAMCS
 import { recordWhatsApp } from '@/utils/channels' // GAMCS L3
 import RecordSummary from '@/components/RecordSummary.vue' // GAMCS Q29
-import { dealFacts as gamcsDealFacts } from '@/utils/gamcs' // GAMCS Q29
+import {
+  dealFacts as gamcsDealFacts,
+  qualification as gamcsQualification,
+} from '@/utils/gamcs' // GAMCS Q29, E65
+import RecordExtras from '@/components/RecordExtras.vue' // GAMCS E65
+import { usersStore as gamcsUsersStore } from '@/stores/users' // GAMCS E65
 import WonModal from '@/components/Modals/WonModal.vue' // GAMCS F7
 import ReconcileModal from '@/components/Modals/ReconcileModal.vue' // GAMCS D42
 import ProposalsTab from '@/components/Proposals/ProposalsTab.vue' // GAMCS F6
@@ -413,7 +420,11 @@ const statuses = computed(() =>
     triggerStatusChange,
   ),
 )
-const dealFacts = computed(() => gamcsDealFacts(doc.value))
+const { getUser: gamcsGetUser } = gamcsUsersStore() // GAMCS E65
+const dealFacts = computed(() =>
+  gamcsDealFacts(doc.value, gamcsGetUser(doc.value.deal_owner)?.full_name),
+)
+const dealQualification = computed(() => gamcsQualification(doc.value)) // GAMCS E65
 const { doctypeMeta } = getMeta('CRM Deal')
 
 const route = useRoute()

@@ -160,10 +160,47 @@
             size="xs"
           />
         </div>
+        <!-- GAMCS E65: next action with its due date; overdue in the accent pill -->
+        <div
+          v-else-if="getRow(itemName, fieldName).gamcs === 'next'"
+          class="flex min-w-0 items-center gap-1.5 text-sm"
+          data-testid="kanban-next-action"
+        >
+          <span class="truncate text-ink-gray-8">{{
+            getRow(itemName, fieldName).label
+          }}</span>
+          <span
+            v-if="getRow(itemName, fieldName).due"
+            class="gamcs-pill shrink-0"
+            :class="
+              getRow(itemName, fieldName).overdue
+                ? 'gamcs-pill-yellow'
+                : 'gamcs-pill-soft'
+            "
+            >{{ getRow(itemName, fieldName).due }}</span
+          >
+        </div>
+        <div
+          v-else-if="getRow(itemName, fieldName).gamcs"
+          class="truncate text-sm"
+          :class="
+            getRow(itemName, fieldName).gamcs === 'money'
+              ? 'gamcs-num font-medium text-ink-gray-9'
+              : getRow(itemName, fieldName).gamcs === 'service'
+                ? 'text-ink-gray-6'
+                : 'text-ink-gray-8'
+          "
+          :data-testid="'kanban-' + getRow(itemName, fieldName).gamcs"
+        >
+          {{ getRow(itemName, fieldName).label }}
+        </div>
         <div v-else class="truncate text-base">
           {{ getRow(itemName, fieldName).label }}
         </div>
       </div>
+      <!-- GAMCS E65: a field folded into another card line renders nothing; an empty slot
+           would fall back to KanbanView's raw value -->
+      <span v-else class="hidden" />
     </template>
 
     <template #actions="{ itemName }">
@@ -234,7 +271,7 @@
 </template>
 
 <script setup>
-import { formatPhone } from '@/utils/gamcs' // GAMCS
+import { formatPhone, dealCardCells } from '@/utils/gamcs' // GAMCS
 import UserAvatar from '@/components/UserAvatar.vue'
 import ViewBreadcrumbs from '@/components/ViewBreadcrumbs.vue'
 import MultipleAvatar from '@/components/MultipleAvatar.vue'
@@ -494,6 +531,9 @@ function parseRows(rows, columns = []) {
     // GAMCS (UI_REVIEW U1): chunk Indian mobiles, +91 98765 43210
     for (const f of ['mobile_no', 'phone', 'whatsapp_no'])
       if (typeof _rows[f] === 'string') _rows[f] = formatPhone(_rows[f])
+    // GAMCS E65 (PRD §17): compact card lines on the board
+    if (view_type === 'kanban')
+      Object.assign(_rows, dealCardCells(deal, deals.value.data.kanban_fields || []))
     return _rows
   })
 }

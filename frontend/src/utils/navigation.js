@@ -9,6 +9,7 @@ import LucideLayoutDashboard from '~icons/lucide/layout-dashboard'
 import LucideHandshake from '~icons/lucide/handshake' // GAMCS
 import LucideListChecks from '~icons/lucide/list-checks' // GAMCS
 import LucideScrollText from '~icons/lucide/scroll-text' // GAMCS
+import LucideClipboardCheck from '~icons/lucide/clipboard-check' // GAMCS E65
 import { usersStore } from '@/stores/users' // GAMCS
 import { getActivePinia } from 'pinia' // GAMCS
 import router from '@/router'
@@ -29,6 +30,8 @@ export const navigationItems = [
   { label: 'Deals', icon: DealsIcon, route: 'Deals', group: 'Pipeline' },
   // GAMCS F1
   { label: 'Relationships', icon: LucideHandshake, route: 'Relationships', group: 'Pipeline' },
+  // GAMCS E65: onboarding and billed revenue after Won
+  { label: 'Engagements', icon: LucideClipboardCheck, route: 'Engagements', group: 'Pipeline' },
   { label: 'Contacts', icon: ContactsIcon, route: 'Contacts', group: 'People' },
   { label: 'Organizations', icon: OrganizationsIcon, route: 'Organizations', group: 'People' },
   { label: 'Notes', icon: NoteIcon, route: 'Notes', group: 'Records' },

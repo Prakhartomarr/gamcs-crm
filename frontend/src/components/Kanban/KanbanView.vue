@@ -117,7 +117,7 @@
                   <div class="border-b h-px my-2.5" />
 
                   <div
-                    class="relative pointer-events-none [&_[data-slot=trigger]]:pointer-events-auto flex flex-col gap-3.5"
+                    class="relative pointer-events-none [&_[data-slot=trigger]]:pointer-events-auto flex flex-col gap-2"
                   >
                     <template v-for="value in column.fields" :key="value">
                       <slot

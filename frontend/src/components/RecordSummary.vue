@@ -38,11 +38,40 @@
           </Tooltip>
         </li>
       </ol>
-      <div v-if="facts.length" class="flex flex-wrap gap-x-6 gap-y-1">
+      <div v-if="facts.length || qualification" class="flex flex-wrap items-center gap-x-6 gap-y-1">
         <div v-for="f in facts" :key="f.label" class="text-sm">
           <span class="text-ink-gray-6">{{ f.label }}</span>
           <span class="gamcs-num ml-1.5 font-semibold text-ink-gray-9">{{ f.value }}</span>
         </div>
+        <!-- GAMCS E65 (PRD §6, D3): advisory, never blocks a move -->
+        <Popover v-if="qualification" bare>
+          <template #trigger>
+            <button
+              type="button"
+              class="gamcs-pill gamcs-pill-soft text-sm"
+              data-testid="qualification"
+            >
+              {{ __('Qualification {0} of {1}', [qualification.done, qualification.total]) }}
+            </button>
+          </template>
+          <template #default>
+            <div class="gamcs-card flex min-w-60 flex-col gap-2 p-3 text-sm shadow-2xl">
+              <div class="font-medium text-ink-gray-8">{{ __('Qualification checklist') }}</div>
+              <ul class="flex flex-col gap-1.5">
+                <li v-for="q in qualification.items" :key="q.key" class="flex items-center gap-2">
+                  <span
+                    :class="q.done ? 'lucide-circle-check text-ink-gray-8' : 'lucide-circle text-ink-gray-5'"
+                    class="size-4 shrink-0"
+                    aria-hidden="true"
+                  />
+                  <span :class="q.done ? 'text-ink-gray-8' : 'text-ink-gray-6'">{{ q.label }}</span>
+                  <span class="sr-only">{{ q.done ? __('done') : __('not done') }}</span>
+                </li>
+              </ul>
+              <div class="text-ink-gray-6">{{ __('Advisory only. Fill these in the Data tab.') }}</div>
+            </div>
+          </template>
+        </Popover>
       </div>
     </div>
 
@@ -95,7 +124,7 @@
 import ChannelActions from '@/components/ChannelActions.vue'
 import { usersStore } from '@/stores/users'
 import { daysFromToday, dueLabel, formatDay } from '@/utils/gamcs'
-import { Tooltip } from 'frappe-ui'
+import { Popover, Tooltip } from 'frappe-ui'
 import { computed } from 'vue'
 
 const props = defineProps({
@@ -111,6 +140,8 @@ const props = defineProps({
   // statuses of these types are reached by their own flow (e.g. Convert), not the track
   lockedTypes: { type: Array, default: () => [] },
   facts: { type: Array, default: () => [] },
+  // GAMCS E65: { done, total, items } from utils/gamcs qualification(); deals only
+  qualification: { type: Object, default: null },
   // mobile pages already carry Log in their action bar (D13), on every tab
   showLog: { type: Boolean, default: true },
   // mobile: 16px gutter to line up with the side-panel sections below

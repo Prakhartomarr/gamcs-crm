@@ -154,6 +154,14 @@
                   {{ title }}
                 </div>
               </Tooltip>
+              <!-- GAMCS E65 (PRD §23): company | designation under the person -->
+              <div
+                v-if="leadSubline"
+                class="-mt-1 truncate text-base text-ink-gray-6"
+                data-testid="header-contact"
+              >
+                {{ leadSubline }}
+              </div>
               <div class="flex gap-1.5">
                 <Button
                   v-if="callEnabled"
@@ -217,6 +225,12 @@
         :recipient="doc.email"
         @changed="() => ((reload = true), document.reload())"
       /><!-- GAMCS E56/E57 -->
+      <RecordExtras
+        doctype="CRM Lead"
+        :docname="leadId"
+        :doc="doc"
+        :reload="extrasReload"
+      /><!-- GAMCS E65 -->
       <SLASection
         v-if="doc.sla_status"
         v-model="doc"
@@ -263,6 +277,7 @@
       () => {
         activities?.all_activities?.reload()
         changeTabTo('attachments')
+        extrasReload++
       }
     "
   />
@@ -307,6 +322,8 @@ import QuickLog from '@/components/QuickLog.vue' // GAMCS
 import { recordWhatsApp } from '@/utils/channels' // GAMCS L3
 import RecordSummary from '@/components/RecordSummary.vue' // GAMCS
 import { leadFacts as gamcsLeadFacts } from '@/utils/gamcs' // GAMCS
+import RecordExtras from '@/components/RecordExtras.vue' // GAMCS E65
+import { usersStore as gamcsUsersStore } from '@/stores/users' // GAMCS E65
 import FilesUploader from '@/components/FilesUploader/FilesUploader.vue'
 import SidePanelLayout from '@/components/SidePanelLayout.vue'
 import SLASection from '@/components/SLASection.vue'
@@ -375,7 +392,15 @@ function openQuickLog(type) {
   quickLogDefaults.value = typeof type === 'string' ? { activity_type: type } : {}
   showQuickLog.value = true
 }
-const leadFacts = computed(() => gamcsLeadFacts(doc.value)) // GAMCS: shared with MobileLead
+const { getUser: gamcsGetUser } = gamcsUsersStore() // GAMCS E65
+const leadFacts = computed(() =>
+  gamcsLeadFacts(doc.value, gamcsGetUser(doc.value.lead_owner)?.full_name),
+) // GAMCS: shared with MobileLead
+// GAMCS E65: the title is the person, so the subline carries company and designation
+const leadSubline = computed(() =>
+  [doc.value.organization, doc.value.job_title].filter(Boolean).join(' | '),
+)
+const extrasReload = ref(0) // GAMCS E65
 
 const showFilesUploader = ref(false)
 

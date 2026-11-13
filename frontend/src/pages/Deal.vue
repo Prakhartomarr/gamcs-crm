@@ -51,6 +51,7 @@
         :nextActionDate="doc.next_action_date"
         :nextActionOwner="doc.next_action_owner"
         :facts="dealFacts"
+        :qualification="dealQualification"
         :phone="recordWhatsApp(doc)"
         :linkedin="doc.linkedin"
         @log="openQuickLog"
@@ -86,7 +87,12 @@
               v-if="activeTab === 'proposals'"
               :deal="dealId"
               :currency="doc.currency"
-              @changed="reloadResources"
+              @changed="
+                () => {
+                  reloadResources()
+                  extrasReload++
+                }
+              "
               @accepted="onProposalAccepted"
             /><!-- GAMCS F6 -->
             <Activities
@@ -133,6 +139,14 @@
               {{ title }}
             </div>
           </Tooltip>
+          <!-- GAMCS E65 (PRD §23): contact | designation under the company -->
+          <div
+            v-if="doc.contact_name || doc.job_title"
+            class="-mt-1 truncate text-base text-ink-gray-6"
+            data-testid="header-contact"
+          >
+            {{ [doc.contact_name, doc.job_title].filter(Boolean).join(' | ') }}
+          </div>
           <div class="flex gap-1.5">
             <Button
               v-if="callEnabled"
@@ -187,6 +201,16 @@
         :recipient="doc.email"
         @changed="() => ((reload = true), document.reload())"
       /><!-- GAMCS E56/E57 -->
+      <RecordExtras
+        doctype="CRM Deal"
+        :docname="dealId"
+        :doc="doc"
+        :contact="
+          dealContacts?.data?.find((c) => c.is_primary) ||
+          dealContacts?.data?.[0]
+        "
+        :reload="extrasReload"
+      /><!-- GAMCS E65 -->
       <SLASection
         v-if="doc.sla_status"
         v-model="doc"
@@ -412,6 +436,7 @@
       () => {
         activities?.all_activities?.reload()
         changeTabTo('attachments')
+        extrasReload++
       }
     "
   />
@@ -459,7 +484,13 @@ import AssignTo from '@/components/AssignTo.vue'
 import QuickLog from '@/components/QuickLog.vue' // GAMCS
 import { recordWhatsApp } from '@/utils/channels' // GAMCS L3
 import RecordSummary from '@/components/RecordSummary.vue' // GAMCS
-import { formatMoney, dealFacts as gamcsDealFacts } from '@/utils/gamcs' // GAMCS
+import {
+  formatMoney,
+  dealFacts as gamcsDealFacts,
+  qualification as gamcsQualification,
+} from '@/utils/gamcs' // GAMCS
+import RecordExtras from '@/components/RecordExtras.vue' // GAMCS E65
+import { usersStore as gamcsUsersStore } from '@/stores/users' // GAMCS E65
 import WonModal from '@/components/Modals/WonModal.vue' // GAMCS F7
 import ManualRateModal from '@/components/Modals/ManualRateModal.vue' // GAMCS D29
 import ProposalsTab from '@/components/Proposals/ProposalsTab.vue' // GAMCS F6
@@ -627,7 +658,12 @@ function openQuickLog(type) {
   quickLogDefaults.value = typeof type === 'string' ? { activity_type: type } : {}
   showQuickLog.value = true
 }
-const dealFacts = computed(() => gamcsDealFacts(doc.value)) // GAMCS: shared with MobileDeal
+const { getUser: gamcsGetUser } = gamcsUsersStore() // GAMCS E65
+const dealFacts = computed(() =>
+  gamcsDealFacts(doc.value, gamcsGetUser(doc.value.deal_owner)?.full_name),
+) // GAMCS: shared with MobileDeal
+const dealQualification = computed(() => gamcsQualification(doc.value)) // GAMCS E65
+const extrasReload = ref(0) // GAMCS E65
 
 // GAMCS F7: a Won-type status opens the onboarding dialog; the server refuses Won without it
 const showWonModal = ref(false)

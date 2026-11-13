@@ -135,7 +135,14 @@
                 >
               </div>
               <div class="mt-0.5 truncate text-sm text-ink-gray-6">
-                <template v-if="b.key === 'reconnect_due'">
+                <!-- GAMCS E65: onboarding checklist item past due -->
+                <template v-if="b.key === 'onboarding'">
+                  {{ row.item }} ·
+                  <span :class="dueClass(row.due_date)">{{
+                    dueText(row.due_date)
+                  }}</span>
+                </template>
+                <template v-else-if="b.key === 'reconnect_due'">
                   {{ joinParts([__('Reconnect'), row.nurture_reason]) }}
                   ·
                   <span :class="dueClass(row.reconnect_date)">{{
@@ -169,6 +176,7 @@
             </Tooltip>
             <!-- GAMCS L3: WhatsApp / LinkedIn one-click logging per row -->
             <ChannelActions
+              v-if="row.doctype !== 'GAMCS Engagement'"
               compact
               size="sm"
               :phone="recordWhatsApp(row)"
@@ -176,6 +184,7 @@
               @log="(t) => openLog(row, t)"
             />
             <Button
+              v-if="row.doctype !== 'GAMCS Engagement'"
               variant="subtle"
               :label="__('Log')"
               icon-left="lucide-plus"
@@ -205,6 +214,7 @@ import { recordWhatsApp } from '@/utils/channels'
 import LeadsIcon from '@/components/Icons/LeadsIcon.vue'
 import DealsIcon from '@/components/Icons/DealsIcon.vue'
 import LucideHandshake from '~icons/lucide/handshake'
+import LucideClipboardCheck from '~icons/lucide/clipboard-check' // GAMCS E65
 import { usersStore } from '@/stores/users'
 import { daysFromToday, dueLabel, formatDay } from '@/utils/gamcs'
 import { Avatar, Tooltip, createResource, usePageMeta } from 'frappe-ui'
@@ -220,11 +230,13 @@ const icons = {
   'CRM Lead': LeadsIcon,
   'CRM Deal': DealsIcon,
   'GAMCS Relationship': LucideHandshake,
+  'GAMCS Engagement': LucideClipboardCheck, // GAMCS E65
 }
 const kinds = {
   'CRM Lead': __('Lead'),
   'CRM Deal': __('Deal'),
   'GAMCS Relationship': __('Relationship'),
+  'GAMCS Engagement': __('Engagement'), // GAMCS E65
 }
 const bucketOrder = [
   { key: 'overdue', label: __('Overdue') },
@@ -232,6 +244,7 @@ const bucketOrder = [
   { key: 'needs_next_action', label: __('Needs next action') },
   { key: 'upcoming', label: __('Upcoming') },
   { key: 'reconnect_due', label: __('Reconnect due') },
+  { key: 'onboarding', label: __('Onboarding overdue') }, // GAMCS E65
 ]
 const filters = [{ key: 'all', label: __('All') }, ...bucketOrder]
 
@@ -284,6 +297,8 @@ function dueClass(date) {
 function routeFor(row) {
   if (row.doctype === 'CRM Deal')
     return { name: 'Deal', params: { dealId: row.name } }
+  if (row.doctype === 'GAMCS Engagement')
+    return { name: 'Engagement', params: { engagementId: row.name } } // GAMCS E65
   if (row.doctype === 'GAMCS Relationship')
     return { name: 'Relationship', params: { relationshipId: row.name } }
   return { name: 'Lead', params: { leadId: row.name } }

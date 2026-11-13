@@ -98,6 +98,7 @@
             :linkedin="doc.linkedin"
             @log="openQuickLog"
           />
+          <RecordExtras doctype="CRM Lead" :docname="leadId" :doc="doc" /><!-- GAMCS E65 -->
           <RecordEmailTools
             doctype="CRM Lead"
             :docname="leadId"
@@ -188,6 +189,8 @@ import QuickLog from '@/components/QuickLog.vue' // GAMCS
 import { recordWhatsApp } from '@/utils/channels' // GAMCS L3
 import RecordSummary from '@/components/RecordSummary.vue' // GAMCS Q29
 import { leadFacts as gamcsLeadFacts } from '@/utils/gamcs' // GAMCS Q29
+import RecordExtras from '@/components/RecordExtras.vue' // GAMCS E65
+import { usersStore as gamcsUsersStore } from '@/stores/users' // GAMCS E65
 import { ref as gamcsRef } from 'vue' // GAMCS
 const showQuickLog = gamcsRef(false) // GAMCS F15
 // GAMCS L3: the header's WhatsApp / LinkedIn buttons open the quick-log pre-set to that type
@@ -238,7 +241,10 @@ const statuses = computed(() =>
     triggerStatusChange,
   ),
 )
-const leadFacts = computed(() => gamcsLeadFacts(doc.value))
+const { getUser: gamcsGetUser } = gamcsUsersStore() // GAMCS E65
+const leadFacts = computed(() =>
+  gamcsLeadFacts(doc.value, gamcsGetUser(doc.value.lead_owner)?.full_name),
+)
 const { doctypeMeta } = getMeta('CRM Lead')
 
 const route = useRoute()

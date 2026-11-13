@@ -59,20 +59,75 @@ export function formatPhone(value) {
 }
 
 /** The few deal numbers worth seeing without opening the side panel (RecordSummary facts). */
-export function dealFacts(d = {}) {
+export function dealFacts(d = {}, ownerName = '') {
   const out = []
   if (d.acv || d.deal_value)
     out.push({ label: __('ACV'), value: formatMoney(d.acv || d.deal_value, d.currency) })
   if (d.probability) out.push({ label: __('Probability'), value: `${Math.round(d.probability)}%` })
   if (d.expected_closure_date)
     out.push({ label: __('Close by'), value: formatDay(d.expected_closure_date) })
+  // GAMCS E65 (PRD §23 summary block): owner, source and service beside the numbers
+  if (ownerName) out.push({ label: __('Owner'), value: ownerName })
+  if (d.source) out.push({ label: __('Source'), value: d.source })
+  if (d.service_summary) out.push({ label: __('Service'), value: d.service_summary })
   return out
 }
 
+/** E65 (PRD §6, D3): the advisory qualification checklist, same rules as record_extras.py. */
+export function qualification(d = {}) {
+  const filled = (v) => !!String(v || '').trim()
+  const items = [
+    { key: 'budget_known', label: __('Budget known'), done: !!d.budget_known },
+    { key: 'decision_maker', label: __('Decision maker identified'), done: filled(d.decision_maker) },
+    { key: 'decision_timeline', label: __('Decision timeline'), done: filled(d.decision_timeline) },
+    { key: 'scope', label: __('Scope understood'), done: !!d.requirement_understood || filled(d.requirement_description) },
+    { key: 'proposal_required', label: __('Proposal required answered'), done: ['Yes', 'No'].includes(d.proposal_required) },
+  ]
+  return { done: items.filter((i) => i.done).length, total: items.length, items }
+}
+
 /** The few lead facts worth seeing without opening the side panel (RecordSummary facts). */
-export function leadFacts(d = {}) {
+export function leadFacts(d = {}, ownerName = '') {
   return [
     d.organization && { label: __('Organisation'), value: d.organization },
+    ownerName && { label: __('Owner'), value: ownerName }, // GAMCS E65
     d.source && { label: __('Source'), value: d.source },
+    d.service_summary && { label: __('Service'), value: d.service_summary }, // GAMCS E65
   ].filter(Boolean)
+}
+
+/** E65 (PRD §17): compact deal card cells. ACV in INR, probability and close date share one
+ * line; next action text and its due date share another, overdue highlighted. Returns only
+ * the cells it renders; a field folded into another line gets an empty label so it is skipped. */
+export function dealCardCells(d = {}, fields = []) {
+  const has = (f) => fields.includes(f)
+  const out = {}
+  const moneyKey = ['base_acv', 'acv', 'probability', 'expected_closure_date'].find(has)
+  if (moneyKey) {
+    const acv = Number(d.base_acv ?? 0) || (d.currency === 'INR' ? Number(d.acv) || 0 : 0)
+    const parts = [
+      (has('base_acv') || has('acv')) && acv ? formatMoney(acv, 'INR') : '',
+      has('probability') && d.probability ? `${Math.round(d.probability)}%` : '',
+      has('expected_closure_date') && d.expected_closure_date
+        ? __('Close {0}', [formatDay(d.expected_closure_date)])
+        : '',
+    ].filter(Boolean)
+    for (const f of ['base_acv', 'acv', 'probability', 'expected_closure_date'])
+      if (has(f)) out[f] = { label: '' }
+    out[moneyKey] = { label: parts.join(' · '), gamcs: 'money' }
+  }
+  const nextKey = ['next_step', 'next_action_date'].find(has)
+  if (nextKey) {
+    const text = d.next_step || (d.next_action_date ? __('Follow up') : '')
+    for (const f of ['next_step', 'next_action_date']) if (has(f)) out[f] = { label: '' }
+    out[nextKey] = {
+      label: text,
+      due: dueLabel(d.next_action_date),
+      overdue: (daysFromToday(d.next_action_date) ?? 0) < 0,
+      gamcs: 'next',
+    }
+  }
+  if (has('contact_name')) out.contact_name = { label: d.contact_name || '', gamcs: 'contact' }
+  if (has('service_summary')) out.service_summary = { label: d.service_summary || '', gamcs: 'service' }
+  return out
 }

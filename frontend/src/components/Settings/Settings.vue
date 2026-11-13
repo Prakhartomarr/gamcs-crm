@@ -73,6 +73,10 @@ import PreferencesSettings from '@/components/Settings/PreferencesSettings.vue'
 import NotificationSettings from '@/components/Settings/NotificationSettings.vue' // GAMCS E46
 import ProposalSettings from '@/components/Settings/ProposalSettings.vue' // GAMCS L3
 import LucideBell from '~icons/lucide/bell' // GAMCS E46
+import MastersSettings from '@/components/Settings/MastersSettings.vue' // GAMCS E65
+import LucideKanban from '~icons/lucide/kanban' // GAMCS E65
+import LucideList from '~icons/lucide/list' // GAMCS E65
+import LucideTimer from '~icons/lucide/timer' // GAMCS E65
 import ConnectionsSettings from '@/components/Settings/ConnectionsSettings.vue' // GAMCS E55/E57
 import LucideLink from '~icons/lucide/link' // GAMCS E55/E57
 import WhatsAppSettings from '@/components/Settings/WhatsAppSettings.vue'
@@ -200,6 +204,28 @@ const tabs = computed(() => {
         },
       ],
       condition: () => isManager(),
+    },
+    {
+      // GAMCS E65: stages, lists and follow-up intervals, Admin only (PRD "configurable")
+      label: __('Masters'),
+      items: [
+        {
+          label: __('Stages'),
+          icon: LucideKanban,
+          component: markRaw(h(MastersSettings, { section: 'stages' })),
+        },
+        {
+          label: __('Lists'),
+          icon: LucideList,
+          component: markRaw(h(MastersSettings, { section: 'lists' })),
+        },
+        {
+          label: __('Follow-up intervals'),
+          icon: LucideTimer,
+          component: markRaw(h(MastersSettings, { section: 'intervals' })),
+        },
+      ],
+      condition: () => isAdmin(),
     },
     {
       label: __('Email'),

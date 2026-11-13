@@ -93,6 +93,18 @@ const routes = [
     props: true,
   },
   {
+    // GAMCS E65: won work, onboarding and billed revenue
+    path: '/engagements',
+    name: 'Engagements',
+    component: () => import('@/pages/Engagements.vue'),
+  },
+  {
+    path: '/engagements/:engagementId',
+    name: 'Engagement',
+    component: () => import('@/pages/Engagement.vue'),
+    props: true,
+  },
+  {
     alias: '/notes',
     path: '/notes/view/:viewType?',
     name: 'Notes',
