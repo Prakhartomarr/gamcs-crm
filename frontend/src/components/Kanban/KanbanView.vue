@@ -34,7 +34,12 @@
                         v-for="color in colors"
                         :key="color"
                         variant="ghost"
-                        @click="() => (column.column.color = color)"
+                        @click="
+                          () => {
+                            column.column.color = color
+                            column.column._auto = false
+                          }
+                        "
                       >
                         <IndicatorIcon :class="parseColor(color)" />
                       </Button>
@@ -193,6 +198,14 @@ import { isTouchScreenDevice, colors, parseColor } from '@/utils'
 import Draggable from 'vuedraggable'
 import { Combobox, Dropdown, Popover } from 'frappe-ui'
 import { computed } from 'vue'
+import { statusesStore } from '@/stores/statuses' // GAMCS
+
+const { getDealStatus, getLeadStatus } = statusesStore() // GAMCS
+function statusColor(name) {
+  if (!name) return ''
+  const cls = getDealStatus(name)?.color || getLeadStatus(name)?.color || ''
+  return /text-([a-z]+)-\d/.exec(cls)?.[1] || '' // GAMCS: parseColor() output back to its name
+}
 
 defineProps({
   options: {
@@ -218,10 +231,17 @@ const columns = computed(() => {
     return []
   let _columns = kanban.value.data.data
 
-  let has_color = _columns.some((column) => column.column?.color)
+  // GAMCS: colours this view assigned itself (_auto) are recomputed once statuses load
+  let has_color = _columns.some(
+    (column) => column.column?.color && !column.column._auto,
+  )
   if (!has_color) {
     _columns.forEach((column, i) => {
-      column.column['color'] = colors[i % colors.length]
+      // GAMCS: a status column keeps its status colour (as the list, the stage dropdown and
+      // the record header show it) instead of a rotating palette that made a stage red
+      column.column['color'] =
+        statusColor(column.column?.name) || colors[i % colors.length]
+      column.column._auto = true // GAMCS
     })
   }
   return _columns
