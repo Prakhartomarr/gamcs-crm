@@ -60,6 +60,9 @@ test.describe('Partner relationship happy path', () => {
 		await rel.gotoDetail(relationship)
 		await rel.addComment(note)
 		await rel.openTab('Activity')
+		// the timeline folds a burst of same-minute changes into "Show +N changes"; open it
+		const folded = page.getByText(/Show \+\d+ changes/)
+		if (await folded.count()) await folded.first().click()
 		await expect(page.getByText(note).first()).toBeVisible()
 		// the stage changes are in the timeline too
 		await expect(page.getByText('Connected').first()).toBeVisible()

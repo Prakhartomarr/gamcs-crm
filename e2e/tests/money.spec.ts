@@ -104,6 +104,8 @@ test.describe('Money: commercials, proposals, Won and Lost', () => {
 		await expect(v1.getByTestId('proposal-client')).toContainText('Revised')
 		await v2.getByRole('button', { name: 'Approval' }).click()
 		await page.getByRole('menuitem', { name: 'Approved' }).click()
+		// wait for the approval to land before sending: Accepted is refused on an unapproved version (D9)
+		await expect(v2.getByTestId('proposal-approval')).toContainText('Approved')
 		await v2.getByRole('button', { name: 'Client status' }).click()
 		await page.getByRole('menuitem', { name: 'Accepted' }).click()
 		await expect(v2.getByTestId('proposal-client')).toContainText('Accepted')

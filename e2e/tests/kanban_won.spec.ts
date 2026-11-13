@@ -96,7 +96,7 @@ test.describe('Kanban drop onto Won / Lost', () => {
 	test('drop on Lost opens the Lost-reason dialog; cancel returns the card', async ({ page, request }) => {
 		const deal = deals[1]
 		await drag(page, deal, 'Lost')
-		await expect(page.getByRole('heading', { name: 'Lost Reason' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Mark as lost' })).toBeVisible()
 		await page.getByRole('button', { name: 'Cancel', exact: true }).click()
 		await expect(page.locator(`[data-column="${status}"] [data-name="${deal}"]`)).toBeVisible()
 		expect((await getDoc<{ status: string }>(request, 'CRM Deal', deal)).status).toBe(status)
