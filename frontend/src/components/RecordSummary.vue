@@ -46,10 +46,17 @@
     </div>
 
     <div
-      class="gamcs-card gamcs-next-action flex flex-col justify-between gap-3 p-4 lg:w-80"
+      class="gamcs-card flex flex-col justify-between gap-3 p-4 lg:w-80"
+      :class="closed ? '' : 'gamcs-next-action'"
       data-testid="next-action-card"
     >
       <div class="flex flex-col gap-1">
+        <template v-if="closed">
+          <span class="text-sm font-medium text-ink-gray-7">{{ __('Outcome') }}</span>
+          <div class="text-base font-semibold text-ink-gray-9">{{ closed }}</div>
+          <div class="text-sm text-ink-gray-6">{{ __('No follow-up needed. Log anything that still happens.') }}</div>
+        </template>
+        <template v-else>
         <div class="flex items-center justify-between gap-2">
           <span class="text-sm font-medium text-ink-gray-7">{{ __('Next action') }}</span>
           <span
@@ -67,6 +74,7 @@
           {{ formatDay(nextActionDate) }}
           <template v-if="ownerName"> · {{ ownerName }}</template>
         </div>
+        </template>
       </div>
       <Button
         :label="__('Log activity')"
@@ -120,6 +128,13 @@ const sideState = computed(() => {
   return ''
 })
 
+// GAMCS UI_REVIEW R7: a closed record has an outcome, not an overdue next action
+const closed = computed(() => {
+  const type = props.getStatus(props.status)?.type
+  if (type === 'Won') return __('Won: {0}', [__(props.status)])
+  if (type === 'Lost') return __('Closed, not won: {0}', [__(props.status)])
+  return ''
+})
 const nextActionText = computed(() =>
   [props.nextActionType, props.nextStep].filter(Boolean).join(' · '),
 )
