@@ -71,8 +71,8 @@ test.describe('Kanban drop onto Won / Lost', () => {
 		await drag(page, deal, 'Won')
 		const dialog = page.getByTestId('won-dialog')
 		await expect(dialog).toBeVisible()
-		await expect(dialog.getByLabel(/Final client name/)).toHaveValue(orgName) // pre-filled as on the deal page
-		await expect(dialog.getByLabel(/Contract duration/)).toHaveValue('12')
+		await expect(dialog.getByLabel(/Client legal name/)).toHaveValue(orgName) // pre-filled as on the deal page
+		await expect(dialog.getByLabel(/Duration \(months\)/)).toHaveValue('12')
 
 		await page.getByRole('button', { name: 'Cancel', exact: true }).click()
 		await expect(dialog).toBeHidden()
@@ -82,8 +82,9 @@ test.describe('Kanban drop onto Won / Lost', () => {
 		await drag(page, deal, 'Won')
 		await expect(dialog).toBeVisible()
 		await dialog.getByLabel('Contract signed').check()
-		await page.getByRole('button', { name: 'Confirm Won' }).click()
-		await expect(page.getByText(/Won\. Engagement/)).toBeVisible()
+		await page.getByRole('button', { name: 'Confirm won' }).click()
+		await expect(page.getByTestId('won-success')).toContainText(orgName)
+		await page.getByRole('button', { name: 'Done', exact: true }).click()
 		await expect(page.locator(`[data-column="Won"] [data-name="${deal}"]`)).toBeVisible()
 		const doc = await getDoc<{ status: string; engagement: string }>(request, 'CRM Deal', deal)
 		expect(doc.status).toBe('Won')
