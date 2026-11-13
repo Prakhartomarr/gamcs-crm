@@ -122,8 +122,8 @@
                   :label="form.document ? __('Replace PDF') : __('Upload PDF')"
                   icon-left="lucide-upload"
                   :loading="uploading"
-                  :disabled="!form.name"
-                  @click="openFileSelector"
+                  :disabled="saving"
+                  @click="attachPdf(openFileSelector)"
                 />
               </template>
             </FileUploader>
@@ -141,8 +141,8 @@
             v-model="form.notes"
           />
         </div>
-        <div v-if="!form.name" class="mt-2 text-sm text-ink-gray-5">
-          {{ __('You can attach the PDF once this version is saved.') }}
+        <div v-if="!form.name" class="mt-2 text-sm text-ink-gray-6">
+          {{ __('Attaching the PDF saves this version first.') }}
         </div>
         <ErrorMessage class="mt-2" :message="error" />
       </template>
@@ -175,7 +175,7 @@ import {
 } from 'frappe-ui'
 import { formatDay, formatMoney } from '@/utils/gamcs'
 import { Tooltip } from 'frappe-ui'
-import { reactive, ref } from 'vue'
+import { nextTick, reactive, ref } from 'vue'
 
 // pill colours; amber/yellow means "waiting on someone"
 const tone = {
@@ -273,7 +273,13 @@ function openForm(p = null) {
   showForm.value = true
 }
 
-async function save() {
+// GAMCS (UI_REVIEW P6): attaching a PDF to a new version saves it first, keeping the dialog open
+async function attachPdf(openFileSelector) {
+  if (!form.name) await save({ keepOpen: true })
+  if (form.name) nextTick(() => openFileSelector())
+}
+
+async function save({ keepOpen = false } = {}) {
   error.value = ''
   saving.value = true
   const values = {
@@ -294,7 +300,7 @@ async function save() {
       })
       Object.assign(form, doc)
       toast.success(
-        __('V{0} saved at {1}. Open it again to attach the PDF.', [
+        __('V{0} saved at {1}.', [
           doc.version,
           money(doc.amount),
         ]),
@@ -302,7 +308,7 @@ async function save() {
     }
     proposals.reload()
     emit('changed')
-    showForm.value = false
+    if (!keepOpen) showForm.value = false
   } catch (e) {
     error.value = e.messages?.[0] || e.message
   } finally {
