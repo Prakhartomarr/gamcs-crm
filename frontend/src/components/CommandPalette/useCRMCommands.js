@@ -53,6 +53,7 @@ const SETTINGS_SECTIONS = [
     pages: [
       ['Profile', 'circle-user'],
       ['Preferences', 'sliders-horizontal'],
+      ['Notifications', 'bell'], // GAMCS E46
       ['Templates', 'notepad-text'],
       ['Telephony', 'phone'],
     ],

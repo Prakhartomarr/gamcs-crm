@@ -70,6 +70,8 @@ import Hierarchy from '@/components/Settings/Hierarchy/Hierarchy.vue'
 import InviteUserPage from '@/components/Settings/InviteUserPage.vue'
 import ProfilePage from '@/components/Settings/Profile/ProfilePage.vue'
 import PreferencesSettings from '@/components/Settings/PreferencesSettings.vue'
+import NotificationSettings from '@/components/Settings/NotificationSettings.vue' // GAMCS E46
+import LucideBell from '~icons/lucide/bell' // GAMCS E46
 import WhatsAppSettings from '@/components/Settings/WhatsAppSettings.vue'
 import ERPNextSettings from '@/components/Settings/ERPNextSettings.vue'
 import LeadSyncSourcePage from '@/components/Settings/LeadSyncing/LeadSyncSourcePage.vue'
@@ -123,6 +125,11 @@ const tabs = computed(() => {
           icon: SlidersIcon,
           component: markRaw(PreferencesSettings),
         },
+        {
+          label: __('Notifications'),
+          icon: LucideBell,
+          component: markRaw(NotificationSettings),
+        }, // GAMCS E46
       ],
     },
     {
