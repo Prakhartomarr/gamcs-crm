@@ -61,33 +61,43 @@
         class="flex flex-1 overflow-hidden flex-col [&_[role='tab']]:px-1 [&_[role='tab']]:shrink-0 [&_[role='tablist']]:px-5 [&_[role='tablist']::-webkit-scrollbar]:h-0 [&_[role='tablist']]:min-h-[45px] [&_[role='tablist']]:gap-[22px] [&>[role='tabpanel']:not([hidden])]:flex [&>[role='tabpanel']:not([hidden])]:grow [&>[data-slot=tab-list]]:overflow-x-auto [&_[data-slot=tab-indicator]]:translate-y-0 [&>[data-slot=tab-panel]]:min-h-0 [&>[data-slot=tab-panel]]:flex-col [&>[data-slot=tab-panel]]:overflow-auto"
       >
         <template #tab-panel>
-          <div class="flex flex-1 flex-col overflow-hidden"><!-- GAMCS: banner + panel -->
-          <div
-            v-if="doc.needs_reconciliation"
-            class="mx-5 mt-3 flex items-center justify-between gap-3 rounded-2xl bg-surface-amber-1 px-4 py-2 text-base text-ink-gray-8"
-            data-testid="reconcile-banner"
-          >
-            <span>{{ __('The billing terms are {0} away from the agreed final value. Line them up before marking this deal won.', [formatMoney(Math.abs(doc.tcv_variance), doc.currency)]) }}</span>
-            <Button :label="__('Fix the terms')" variant="subtle" @click="showReconcile = true" />
-          </div>
-          <ProposalsTab
-            v-if="activeTab === 'proposals'"
-            :deal="dealId"
-            :currency="doc.currency"
-            @changed="reloadResources"
-            @accepted="onProposalAccepted"
-          /><!-- GAMCS F6 -->
-          <Activities
-            v-else
-            ref="activities"
-            v-model:reload="reload"
-            v-model:activeTab="activeTab"
-            doctype="CRM Deal"
-            :docname="dealId"
-            :tabs="tabs"
-            @beforeSave="beforeStatusChange"
-            @afterSave="reloadResources"
-          />
+          <div class="flex flex-1 flex-col overflow-hidden">
+            <!-- GAMCS: banner + panel -->
+            <div
+              v-if="doc.needs_reconciliation"
+              class="mx-5 mt-3 flex items-center justify-between gap-3 rounded-2xl bg-surface-amber-1 px-4 py-2 text-base text-ink-gray-8"
+              data-testid="reconcile-banner"
+            >
+              <span>{{
+                __(
+                  'The billing terms are {0} away from the agreed final value. Line them up before marking this deal won.',
+                  [formatMoney(Math.abs(doc.tcv_variance), doc.currency)],
+                )
+              }}</span>
+              <Button
+                :label="__('Fix the terms')"
+                variant="subtle"
+                @click="showReconcile = true"
+              />
+            </div>
+            <ProposalsTab
+              v-if="activeTab === 'proposals'"
+              :deal="dealId"
+              :currency="doc.currency"
+              @changed="reloadResources"
+              @accepted="onProposalAccepted"
+            /><!-- GAMCS F6 -->
+            <Activities
+              v-else
+              ref="activities"
+              v-model:reload="reload"
+              v-model:activeTab="activeTab"
+              doctype="CRM Deal"
+              :docname="dealId"
+              :tabs="tabs"
+              @beforeSave="beforeStatusChange"
+              @afterSave="reloadResources"
+            />
           </div>
         </template>
       </Tabs>
@@ -355,7 +365,12 @@
     v-model="showQuickLog"
     doctype="CRM Deal"
     :docname="dealId"
-    @logged="() => { activities?.all_activities?.reload(); document.reload() }"
+    @logged="
+      () => {
+        activities?.all_activities?.reload()
+        document.reload()
+      }
+    "
   /><!-- GAMCS F15 -->
   <WonModal
     v-if="showWonModal"
@@ -599,10 +614,20 @@ const dealFacts = computed(() => {
   const d = doc.value
   const out = []
   if (d.acv || d.deal_value)
-    out.push({ label: __('ACV'), value: formatMoney(d.acv || d.deal_value, d.currency) })
-  if (d.probability) out.push({ label: __('Probability'), value: `${Math.round(d.probability)}%` })
+    out.push({
+      label: __('ACV'),
+      value: formatMoney(d.acv || d.deal_value, d.currency),
+    })
+  if (d.probability)
+    out.push({
+      label: __('Probability'),
+      value: `${Math.round(d.probability)}%`,
+    })
   if (d.expected_closure_date)
-    out.push({ label: __('Close by'), value: formatDay(d.expected_closure_date) })
+    out.push({
+      label: __('Close by'),
+      value: formatDay(d.expected_closure_date),
+    })
   return out
 })
 
@@ -610,7 +635,8 @@ const dealFacts = computed(() => {
 const showWonModal = ref(false)
 const wonStatus = ref('')
 function openWonDialogIfNeeded(status) {
-  if (getDealStatus(status)?.type !== 'Won' || doc.value.engagement) return false
+  if (getDealStatus(status)?.type !== 'Won' || doc.value.engagement)
+    return false
   wonStatus.value = status
   showWonModal.value = true
   return true
@@ -687,7 +713,15 @@ const title = computed(() => {
   // GAMCS: no raw IDs as a title (UI_REVIEW R4): organisation, then person, then email
   const d = doc.value || {}
   const person = [d.first_name, d.last_name].filter(Boolean).join(' ')
-  return d[t] || d.lead_name || person || d.email || __('Untitled deal')
+  return (
+    d[t] ||
+    d.lead_name ||
+    person ||
+    d.email ||
+    __('Untitled deal {0}', [
+      Number(String(props.dealId).split('-').pop()) || props.dealId,
+    ])
+  )
 })
 
 const statuses = computed(() => {
@@ -1113,7 +1147,8 @@ function updateField(name, value) {
       } else {
         doc.value[name] = oldValues
       }
-      if (askManualRate(err, name === 'currency' ? value : doc.value.currency)) return // GAMCS D29
+      if (askManualRate(err, name === 'currency' ? value : doc.value.currency))
+        return // GAMCS D29
     },
   })
 }
@@ -1154,7 +1189,8 @@ function setLostReason() {
 }
 
 function beforeStatusChange(data) {
-  if (Object.hasOwn(data ?? {}, 'status') && openWonDialogIfNeeded(data.status)) return // GAMCS F7
+  if (Object.hasOwn(data ?? {}, 'status') && openWonDialogIfNeeded(data.status))
+    return // GAMCS F7
   if (
     Object.hasOwn(data ?? {}, 'status') &&
     getDealStatus(data.status).type == 'Lost'

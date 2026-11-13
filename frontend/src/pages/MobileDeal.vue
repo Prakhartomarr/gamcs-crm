@@ -274,14 +274,24 @@
     v-model="showQuickLog"
     doctype="CRM Deal"
     :docname="dealId"
-    @logged="() => { reload = true; document.reload() }"
+    @logged="
+      () => {
+        reload = true
+        document.reload()
+      }
+    "
   />
   <WonModal
     v-if="showWonModal"
     v-model="showWonModal"
     :dealId="dealId"
     :status="wonStatus"
-    @won="() => { document.reload(); reload = true }"
+    @won="
+      () => {
+        document.reload()
+        reload = true
+      }
+    "
     @cancel="() => (doc.status = document.originalDoc?.status || doc.status)"
     @reconcile="showReconcile = true"
   />
@@ -289,7 +299,12 @@
     v-if="showReconcile"
     v-model="showReconcile"
     :dealId="dealId"
-    @saved="() => { document.reload(); reload = true }"
+    @saved="
+      () => {
+        document.reload()
+        reload = true
+      }
+    "
   />
   <LostReasonModal
     v-if="showLostReasonModal"
@@ -464,7 +479,15 @@ const title = computed(() => {
   // GAMCS: no raw IDs as a title (UI_REVIEW R4): organisation, then person, then email
   const d = doc.value || {}
   const person = [d.first_name, d.last_name].filter(Boolean).join(' ')
-  return d[t] || d.lead_name || person || d.email || __('Untitled deal')
+  return (
+    d[t] ||
+    d.lead_name ||
+    person ||
+    d.email ||
+    __('Untitled deal {0}', [
+      Number(String(props.dealId).split('-').pop()) || props.dealId,
+    ])
+  )
 })
 
 usePageMeta(() => {
