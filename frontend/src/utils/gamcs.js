@@ -57,3 +57,22 @@ export function formatPhone(value) {
   const m = /^(?:\+?91)?([6-9]\d{4})(\d{5})$/.exec(digits)
   return m ? `+91 ${m[1]} ${m[2]}` : String(value)
 }
+
+/** The few deal numbers worth seeing without opening the side panel (RecordSummary facts). */
+export function dealFacts(d = {}) {
+  const out = []
+  if (d.acv || d.deal_value)
+    out.push({ label: __('ACV'), value: formatMoney(d.acv || d.deal_value, d.currency) })
+  if (d.probability) out.push({ label: __('Probability'), value: `${Math.round(d.probability)}%` })
+  if (d.expected_closure_date)
+    out.push({ label: __('Close by'), value: formatDay(d.expected_closure_date) })
+  return out
+}
+
+/** The few lead facts worth seeing without opening the side panel (RecordSummary facts). */
+export function leadFacts(d = {}) {
+  return [
+    d.organization && { label: __('Organisation'), value: d.organization },
+    d.source && { label: __('Source'), value: d.source },
+  ].filter(Boolean)
+}

@@ -2,7 +2,8 @@
      each step clickable) and the next action, highlighted, with the one-click Log. -->
 <template>
   <div
-    class="flex flex-col gap-4 px-5 pt-4 lg:flex-row lg:items-stretch"
+    class="flex flex-col gap-4 lg:flex-row lg:items-stretch"
+    :class="stacked ? 'px-4 pt-4' : 'px-5 pt-4'"
     data-testid="record-summary"
   >
     <div class="gamcs-card flex min-w-0 flex-1 flex-col justify-between gap-3 p-4">
@@ -77,6 +78,7 @@
         </template>
       </div>
       <Button
+        v-if="showLog"
         :label="__('Log activity')"
         icon-left="lucide-plus"
         class="self-start"
@@ -105,6 +107,10 @@ const props = defineProps({
   // statuses of these types are reached by their own flow (e.g. Convert), not the track
   lockedTypes: { type: Array, default: () => [] },
   facts: { type: Array, default: () => [] },
+  // mobile pages already carry Log in their action bar (D13), on every tab
+  showLog: { type: Boolean, default: true },
+  // mobile: 16px gutter to line up with the side-panel sections below
+  stacked: { type: Boolean, default: false },
 })
 const emit = defineEmits(['log'])
 const { getUser } = usersStore()

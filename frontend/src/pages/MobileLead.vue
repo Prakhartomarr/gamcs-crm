@@ -80,6 +80,21 @@
     >
       <template #tab-panel="{ tab }">
         <div v-if="tab.name == 'Details'">
+          <!-- GAMCS Q29: the desktop header card, stacked; Log stays in the action bar -->
+          <RecordSummary
+            class="pb-2"
+            :status="doc.status"
+            :options="statuses"
+            :getStatus="getLeadStatus"
+            :nextActionType="doc.next_action_type"
+            :nextStep="doc.next_step"
+            :nextActionDate="doc.next_action_date"
+            :nextActionOwner="doc.next_action_owner"
+            :lockedTypes="['Won']"
+            :facts="leadFacts"
+            :showLog="false"
+            stacked
+          />
           <SLASection
             v-if="doc.sla_status"
             v-model="doc"
@@ -159,6 +174,8 @@ import WhatsAppIcon from '@/components/Icons/WhatsAppIcon.vue'
 import IndicatorIcon from '@/components/Icons/IndicatorIcon.vue'
 import LostReasonModal from '@/components/Modals/LostReasonModal.vue'
 import QuickLog from '@/components/QuickLog.vue' // GAMCS
+import RecordSummary from '@/components/RecordSummary.vue' // GAMCS Q29
+import { leadFacts as gamcsLeadFacts } from '@/utils/gamcs' // GAMCS Q29
 import { ref as gamcsRef } from 'vue' // GAMCS
 const showQuickLog = gamcsRef(false) // GAMCS F15
 import LayoutHeader from '@/components/LayoutHeader.vue'
@@ -194,6 +211,15 @@ import ConvertToDealModal from '@/components/Modals/ConvertToDealModal.vue'
 const { brand } = getSettings()
 const { $dialog, $socket } = globalStore()
 const { statusOptions, getLeadStatus } = statusesStore()
+// GAMCS Q29: same inputs as the desktop RecordSummary
+const statuses = computed(() =>
+  statusOptions(
+    'lead',
+    document.statuses?.length ? document.statuses : document._statuses || [],
+    triggerStatusChange,
+  ),
+)
+const leadFacts = computed(() => gamcsLeadFacts(doc.value))
 const { doctypeMeta } = getMeta('CRM Lead')
 
 const route = useRoute()

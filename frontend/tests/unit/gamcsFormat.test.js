@@ -1,4 +1,12 @@
-import { daysFromToday, dueLabel, formatDay, formatMoney, formatPhone } from '@/utils/gamcs'
+import {
+  daysFromToday,
+  dealFacts,
+  dueLabel,
+  formatDay,
+  formatMoney,
+  formatPhone,
+  leadFacts,
+} from '@/utils/gamcs'
 
 describe('GAMCS formatting helpers', () => {
   const today = new Date(2026, 10, 13)
@@ -22,5 +30,14 @@ describe('GAMCS formatting helpers', () => {
     expect(formatPhone('9876543210')).toBe('+91 98765 43210')
     expect(formatPhone('+91-98765-43210')).toBe('+91 98765 43210')
     expect(formatPhone('+971 50 123 4567')).toBe('+971 50 123 4567')
+  })
+  it('picks the header facts for a deal and a lead (desktop and mobile share them)', () => {
+    expect(dealFacts({ acv: 1200000, currency: 'INR', probability: 75, expected_closure_date: '2026-12-01' })).toEqual([
+      { label: 'ACV', value: '₹12,00,000' },
+      { label: 'Probability', value: '75%' },
+      { label: 'Close by', value: '1 Dec 2026' },
+    ])
+    expect(dealFacts({})).toEqual([])
+    expect(leadFacts({ organization: 'Acme', source: '' })).toEqual([{ label: 'Organisation', value: 'Acme' }])
   })
 })

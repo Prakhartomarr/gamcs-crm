@@ -66,6 +66,20 @@
     >
       <template #tab-panel="{ tab }">
         <div v-if="tab.name == 'Details'">
+          <!-- GAMCS Q29: the desktop header card, stacked; Log stays in the action bar -->
+          <RecordSummary
+            class="pb-2"
+            :status="doc.status"
+            :options="statuses"
+            :getStatus="getDealStatus"
+            :nextActionType="doc.next_action_type"
+            :nextStep="doc.next_step"
+            :nextActionDate="doc.next_action_date"
+            :nextActionOwner="doc.next_action_owner"
+            :facts="dealFacts"
+            :showLog="false"
+            stacked
+          />
           <SLASection
             v-if="doc.sla_status"
             v-model="doc"
@@ -332,6 +346,8 @@ import IndicatorIcon from '@/components/Icons/IndicatorIcon.vue'
 import ArrowUpRightIcon from '@/components/Icons/ArrowUpRightIcon.vue'
 import FileTextIcon from '@/components/Icons/FileTextIcon.vue'
 import QuickLog from '@/components/QuickLog.vue' // GAMCS
+import RecordSummary from '@/components/RecordSummary.vue' // GAMCS Q29
+import { dealFacts as gamcsDealFacts } from '@/utils/gamcs' // GAMCS Q29
 import WonModal from '@/components/Modals/WonModal.vue' // GAMCS F7
 import ReconcileModal from '@/components/Modals/ReconcileModal.vue' // GAMCS D42
 import ProposalsTab from '@/components/Proposals/ProposalsTab.vue' // GAMCS F6
@@ -376,6 +392,15 @@ import { useRoute, useRouter } from 'vue-router'
 const { brand } = getSettings()
 const { $dialog, $socket } = globalStore()
 const { statusOptions, getDealStatus } = statusesStore()
+// GAMCS Q29: same inputs as the desktop RecordSummary
+const statuses = computed(() =>
+  statusOptions(
+    'deal',
+    document.statuses?.length ? document.statuses : document._statuses || [],
+    triggerStatusChange,
+  ),
+)
+const dealFacts = computed(() => gamcsDealFacts(doc.value))
 const { doctypeMeta } = getMeta('CRM Deal')
 
 const route = useRoute()

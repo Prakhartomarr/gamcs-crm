@@ -295,6 +295,7 @@ import Activities from '@/components/Activities/Activities.vue'
 import AssignTo from '@/components/AssignTo.vue'
 import QuickLog from '@/components/QuickLog.vue' // GAMCS
 import RecordSummary from '@/components/RecordSummary.vue' // GAMCS
+import { leadFacts as gamcsLeadFacts } from '@/utils/gamcs' // GAMCS
 import FilesUploader from '@/components/FilesUploader/FilesUploader.vue'
 import SidePanelLayout from '@/components/SidePanelLayout.vue'
 import SLASection from '@/components/SLASection.vue'
@@ -356,14 +357,7 @@ const errorMessage = ref('')
 const showDeleteLinkedDocModal = ref(false)
 const showConvertToDealModal = ref(false)
 const showQuickLog = ref(false) // GAMCS
-// GAMCS: the few facts worth seeing without opening the side panel
-const leadFacts = computed(() => {
-  const d = doc.value
-  return [
-    d.organization && { label: __('Organisation'), value: d.organization },
-    d.source && { label: __('Source'), value: d.source },
-  ].filter(Boolean)
-})
+const leadFacts = computed(() => gamcsLeadFacts(doc.value)) // GAMCS: shared with MobileLead
 
 const showFilesUploader = ref(false)
 

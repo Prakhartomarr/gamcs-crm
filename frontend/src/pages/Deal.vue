@@ -448,7 +448,7 @@ import LostReasonModal from '@/components/Modals/LostReasonModal.vue'
 import AssignTo from '@/components/AssignTo.vue'
 import QuickLog from '@/components/QuickLog.vue' // GAMCS
 import RecordSummary from '@/components/RecordSummary.vue' // GAMCS
-import { formatDay, formatMoney } from '@/utils/gamcs' // GAMCS
+import { formatMoney, dealFacts as gamcsDealFacts } from '@/utils/gamcs' // GAMCS
 import WonModal from '@/components/Modals/WonModal.vue' // GAMCS F7
 import ManualRateModal from '@/components/Modals/ManualRateModal.vue' // GAMCS D29
 import ProposalsTab from '@/components/Proposals/ProposalsTab.vue' // GAMCS F6
@@ -609,27 +609,7 @@ const reload = ref(false)
 const showOrganizationModal = ref(false)
 const showFilesUploader = ref(false)
 const showQuickLog = ref(false) // GAMCS
-// GAMCS: the few numbers worth seeing without opening the side panel
-const dealFacts = computed(() => {
-  const d = doc.value
-  const out = []
-  if (d.acv || d.deal_value)
-    out.push({
-      label: __('ACV'),
-      value: formatMoney(d.acv || d.deal_value, d.currency),
-    })
-  if (d.probability)
-    out.push({
-      label: __('Probability'),
-      value: `${Math.round(d.probability)}%`,
-    })
-  if (d.expected_closure_date)
-    out.push({
-      label: __('Close by'),
-      value: formatDay(d.expected_closure_date),
-    })
-  return out
-})
+const dealFacts = computed(() => gamcsDealFacts(doc.value)) // GAMCS: shared with MobileDeal
 
 // GAMCS F7: a Won-type status opens the onboarding dialog; the server refuses Won without it
 const showWonModal = ref(false)
