@@ -461,7 +461,10 @@ const breadcrumbs = computed(() => {
 
 const title = computed(() => {
   let t = doctypeMeta.value?.title_field || 'name'
-  return doc.value?.[t] || props.dealId
+  // GAMCS: no raw IDs as a title (UI_REVIEW R4): organisation, then person, then email
+  const d = doc.value || {}
+  const person = [d.first_name, d.last_name].filter(Boolean).join(' ')
+  return d[t] || d.lead_name || person || d.email || __('Untitled deal')
 })
 
 usePageMeta(() => {

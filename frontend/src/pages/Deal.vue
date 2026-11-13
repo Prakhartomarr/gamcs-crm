@@ -93,12 +93,17 @@
       </Tabs>
     </div>
     <Resizer side="right" class="flex flex-col justify-between border-l">
-      <div
-        class="flex h-[45px] cursor-copy items-center border-b px-5 py-2.5 text-lg-medium text-ink-gray-9"
-        @click="copyToClipboard(dealId)"
-      >
-        {{ __(dealId) }}
-      </div>
+      <!-- GAMCS: the ID is reference data, not the heading (UI_REVIEW R4) -->
+      <Tooltip :text="__('Copy ID')">
+        <button
+          type="button"
+          class="flex h-[45px] w-full items-center gap-2 border-b px-5 py-2.5 text-left text-sm text-ink-gray-6 hover:text-ink-gray-8"
+          @click="copyToClipboard(dealId)"
+        >
+          <span class="lucide-copy size-3.5" aria-hidden="true" />
+          <span class="gamcs-num">{{ dealId }}</span>
+        </button>
+      </Tooltip>
       <div class="flex items-center justify-start gap-5 border-b p-5">
         <Tooltip :text="__('Organization Logo')">
           <div class="group relative size-12">
@@ -679,7 +684,10 @@ const breadcrumbs = computed(() => {
 
 const title = computed(() => {
   let t = doctypeMeta.value?.title_field || 'name'
-  return doc.value?.[t] || props.dealId
+  // GAMCS: no raw IDs as a title (UI_REVIEW R4): organisation, then person, then email
+  const d = doc.value || {}
+  const person = [d.first_name, d.last_name].filter(Boolean).join(' ')
+  return d[t] || d.lead_name || person || d.email || __('Untitled deal')
 })
 
 const statuses = computed(() => {

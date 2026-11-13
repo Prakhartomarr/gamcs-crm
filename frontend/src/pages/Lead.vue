@@ -87,12 +87,17 @@
       </Tabs>
     </div>
     <Resizer class="flex flex-col justify-between border-l" side="right">
-      <div
-        class="flex h-[45px] cursor-copy items-center border-b px-5 py-2.5 text-lg-medium text-ink-gray-9"
-        @click="copyToClipboard(leadId)"
-      >
-        {{ __(leadId) }}
-      </div>
+      <!-- GAMCS: the ID is reference data, not the heading (UI_REVIEW R4) -->
+      <Tooltip :text="__('Copy ID')">
+        <button
+          type="button"
+          class="flex h-[45px] w-full items-center gap-2 border-b px-5 py-2.5 text-left text-sm text-ink-gray-6 hover:text-ink-gray-8"
+          @click="copyToClipboard(leadId)"
+        >
+          <span class="lucide-copy size-3.5" aria-hidden="true" />
+          <span class="gamcs-num">{{ leadId }}</span>
+        </button>
+      </Tooltip>
       <FileUploader
         :validateFile="validateIsImageFile"
         @success="(file) => updateField('image', file.file_url)"
