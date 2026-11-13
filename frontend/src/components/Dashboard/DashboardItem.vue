@@ -4,7 +4,7 @@
       v-if="item.type == 'number_chart'"
       class="flex h-full w-full overflow-hidden cursor-pointer"
     >
-      <Tooltip :text="__(item.data.tooltip)">
+      <Tooltip :text="__(item.data?.tooltip || '')">
         <NumberCard
           v-if="item.data"
           :key="index"

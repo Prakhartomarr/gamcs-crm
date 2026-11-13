@@ -42,6 +42,12 @@
   >
     <AssignTo v-model="assignees.data" doctype="CRM Lead" :docname="leadId" />
     <div class="flex items-center gap-2">
+      <Button
+        :label="__('Log')"
+        icon-left="lucide-plus"
+        :aria-label="__('Log activity')"
+        @click="showQuickLog = true"
+      /><!-- GAMCS F15 on mobile (D13) -->
       <CustomActions
         v-if="document._actions?.length"
         :actions="document._actions"
@@ -124,6 +130,12 @@
     :title="doc.lead_name"
     name="Leads"
   />
+  <QuickLog
+    v-model="showQuickLog"
+    doctype="CRM Lead"
+    :docname="leadId"
+    @logged="() => document.reload()"
+  /><!-- GAMCS -->
   <LostReasonModal
     v-if="showLostReasonModal"
     v-model="showLostReasonModal"
@@ -146,6 +158,9 @@ import AttachmentIcon from '@/components/Icons/AttachmentIcon.vue'
 import WhatsAppIcon from '@/components/Icons/WhatsAppIcon.vue'
 import IndicatorIcon from '@/components/Icons/IndicatorIcon.vue'
 import LostReasonModal from '@/components/Modals/LostReasonModal.vue'
+import QuickLog from '@/components/QuickLog.vue' // GAMCS
+import { ref as gamcsRef } from 'vue' // GAMCS
+const showQuickLog = gamcsRef(false) // GAMCS F15
 import LayoutHeader from '@/components/LayoutHeader.vue'
 import Activities from '@/components/Activities/Activities.vue'
 import AssignTo from '@/components/AssignTo.vue'

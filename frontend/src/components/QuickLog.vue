@@ -1,89 +1,118 @@
-<!-- GAMCS F15: one-click activity logging with the next action set in the same dialog -->
+<!-- GAMCS F15: one-click activity logging with the next action set in the same dialog.
+     Two short sections (what happened / what's next), Enter or ⌘/Ctrl+Enter saves,
+     Cancel secondary, one primary button bottom right. -->
 <template>
-  <Dialog v-model:open="show" :size="'xl'" bare>
+  <Dialog
+    v-model:open="show"
+    :title="__('Log activity')"
+    :size="'xl'"
+  >
     <template #default>
-      <div
-        class="bg-surface-elevation-1 px-4 pb-6 pt-5 sm:px-6"
-        @keydown.meta.enter="submit"
-        @keydown.ctrl.enter="submit"
+      <form
+        class="flex flex-col gap-6"
+        data-testid="quick-log"
+        @submit.prevent="submit"
+        @keydown.meta.enter.prevent="submit"
+        @keydown.ctrl.enter.prevent="submit"
       >
-        <div class="mb-4 flex items-center justify-between">
-          <Dialog.Title as-child>
-            <h3 class="text-3xl-semibold leading-6 text-ink-gray-9">
-              {{ __('Log activity') }}
-            </h3>
-          </Dialog.Title>
-          <Button
-            variant="ghost"
-            class="w-7"
-            icon="lucide-x"
-            @click="show = false"
-          />
-        </div>
-        <div class="grid grid-cols-2 gap-3">
+        <fieldset class="flex flex-col gap-4">
+          <legend class="mb-3 text-base font-semibold text-ink-gray-8">
+            {{ __('What happened') }}
+          </legend>
+          <div class="flex flex-wrap gap-2" role="radiogroup" :aria-label="__('Type')">
+            <button
+              v-for="t in typeOptions"
+              :key="t.value"
+              type="button"
+              role="radio"
+              :aria-checked="form.activity_type === t.value"
+              class="h-7 rounded-full px-3 text-base transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+              :class="
+                form.activity_type === t.value
+                  ? 'bg-surface-gray-10 text-ink-base'
+                  : 'bg-surface-gray-2 text-ink-gray-7 hover:bg-surface-gray-3'
+              "
+              @click="form.activity_type = t.value"
+            >
+              {{ t.label }}
+            </button>
+          </div>
           <FormControl
-            ref="typeInput"
-            type="select"
-            :label="__('Type')"
-            v-model="form.activity_type"
-            :options="typeOptions"
-          />
-          <FormControl
+            ref="subjectInput"
             type="text"
             :label="__('Subject')"
             v-model="form.subject"
-            :placeholder="__('Connected with the CFO')"
+            :placeholder="__('e.g. Connected with the CFO')"
           />
-          <div class="col-span-2">
-            <FormControl
-              type="textarea"
-              :label="__('Notes')"
-              v-model="form.description"
-              :placeholder="__('What was said, what was agreed')"
-            />
-          </div>
+          <FormControl
+            type="textarea"
+            :label="__('Notes')"
+            v-model="form.description"
+            :placeholder="__('What was said, what was agreed')"
+          />
           <FormControl
             type="text"
             :label="__('Outcome')"
             v-model="form.outcome"
-            :placeholder="__('Interested, reconnect next week')"
+            :placeholder="__('e.g. Interested, reconnect next week')"
           />
-          <div />
-          <div
-            class="col-span-2 border-t pt-3 text-base font-medium text-ink-gray-7"
-          >
-            {{ __('Next action') }}
+        </fieldset>
+
+        <fieldset class="flex flex-col gap-4 rounded-2xl bg-[var(--gamcs-ice)] p-4">
+          <legend class="sr-only">{{ __("What's next") }}</legend>
+          <div class="text-base font-semibold text-ink-gray-8" aria-hidden="true">
+            {{ __("What's next") }}
           </div>
           <FormControl
             type="text"
             :label="__('Next action')"
             v-model="form.next_step"
-            :placeholder="__('Call to walk through the proposal')"
+            :placeholder="__('e.g. Call to walk through the proposal')"
           />
-          <DatePicker
-            :label="__('Next action date')"
-            v-model="form.next_action_date"
-            :placeholder="__('Pick a date')"
-          />
-          <FormControl
-            type="select"
-            :label="__('Next action type')"
-            v-model="form.next_action_type"
-            :options="typeOptions"
-          />
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="flex flex-col gap-2">
+              <DatePicker
+                :label="__('When')"
+                v-model="form.next_action_date"
+                :placeholder="__('Pick a date')"
+              />
+              <div class="flex flex-wrap gap-1">
+                <button
+                  v-for="q in quickDates"
+                  :key="q.label"
+                  type="button"
+                  class="h-6 rounded-full bg-surface-base px-2.5 text-sm text-ink-gray-7 shadow-sm hover:bg-surface-gray-2"
+                  @click="form.next_action_date = q.value"
+                >
+                  {{ q.label }}
+                </button>
+              </div>
+            </div>
+            <FormControl
+              type="select"
+              :label="__('Type')"
+              v-model="form.next_action_type"
+              :options="[{ label: __('Same as above'), value: '' }, ...typeOptions]"
+            />
+          </div>
           <Link
-            :label="__('Next action owner')"
+            :label="__('Owner')"
             doctype="User"
             v-model="form.next_action_owner"
             :placeholder="__('Owner')"
           />
-        </div>
-        <ErrorMessage v-if="error" class="mt-3" :message="error" />
-      </div>
-      <div class="flex flex-row-reverse gap-2 px-4 pb-6 sm:px-6">
+        </fieldset>
+        <ErrorMessage v-if="error" :message="error" />
+        <!-- Enter in a single-line field submits -->
+        <button type="submit" class="hidden" tabindex="-1" aria-hidden="true" />
+      </form>
+    </template>
+    <template #actions>
+      <div class="flex items-center justify-end gap-2">
+        <Button :label="__('Cancel')" @click="show = false" />
         <Button
           variant="solid"
-          :label="__('Log') + ' (⌘⏎)'"
+          :label="__('Log activity')"
           :loading="saving"
           @click="submit"
         />
@@ -95,15 +124,17 @@
 <script setup>
 import Link from '@/components/Controls/Link.vue'
 import { usersStore } from '@/stores/users'
+import { dueLabel, formatDay } from '@/utils/gamcs'
 import {
   createListResource,
   createResource,
   DatePicker,
+  Dialog,
   FormControl,
   ErrorMessage,
   toast,
-  Dialog,
 } from 'frappe-ui'
+import { useStorage } from '@vueuse/core'
 import { computed, nextTick, reactive, ref, watch } from 'vue'
 
 const props = defineProps({
@@ -115,9 +146,10 @@ const emit = defineEmits(['logged'])
 const show = defineModel({ type: Boolean })
 
 const { getUser } = usersStore()
-const typeInput = ref(null)
+const subjectInput = ref(null)
 const saving = ref(false)
 const error = ref('')
+const lastType = useStorage('gamcs-quicklog-type', 'Call')
 
 const types = createListResource({
   doctype: 'GAMCS Activity Type',
@@ -129,14 +161,27 @@ const typeOptions = computed(() =>
   (types.data || []).map((t) => ({ label: t.name, value: t.name })),
 )
 
+function isoIn(days) {
+  const d = new Date()
+  d.setDate(d.getDate() + days)
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+const quickDates = [
+  { label: __('Tomorrow'), value: isoIn(1) },
+  { label: __('In 3 days'), value: isoIn(3) },
+  { label: __('Next week'), value: isoIn(7) },
+  { label: __('In 2 weeks'), value: isoIn(14) },
+]
+
 function blank() {
   return {
-    activity_type: 'LinkedIn',
+    activity_type: lastType.value || 'Call',
     subject: '',
     description: '',
     outcome: '',
     next_step: '',
-    next_action_date: '',
+    next_action_date: isoIn(3),
     next_action_type: '',
     next_action_owner: getUser().name,
     ...props.defaults,
@@ -148,7 +193,7 @@ watch(show, (open) => {
   if (open) {
     Object.assign(form, blank())
     error.value = ''
-    nextTick(() => typeInput.value?.$el?.querySelector('select')?.focus())
+    nextTick(() => subjectInput.value?.$el?.querySelector('input')?.focus())
   }
 })
 
@@ -158,17 +203,28 @@ function submit() {
   if (saving.value) return
   error.value = ''
   saving.value = true
+  lastType.value = form.activity_type
   log.submit(
     {
       reference_doctype: props.doctype,
       reference_docname: props.docname,
       ...form,
+      next_action_type: form.next_action_type || form.activity_type,
     },
     {
       onSuccess() {
         saving.value = false
         show.value = false
-        toast.success(__('Activity logged'))
+        // peak-end: say what was saved and what happens next
+        toast.success(
+          form.next_action_date
+            ? __('{0} logged. Next: {1}, {2}', [
+                form.activity_type,
+                form.next_step || form.next_action_type || form.activity_type,
+                `${dueLabel(form.next_action_date).toLowerCase()} (${formatDay(form.next_action_date)})`,
+              ])
+            : __('{0} logged', [form.activity_type]),
+        )
         emit('logged')
       },
       onError(err) {

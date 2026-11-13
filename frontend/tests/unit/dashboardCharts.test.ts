@@ -150,3 +150,17 @@ describe('toNumberCardProps', () => {
     })
   })
 })
+
+// GAMCS: Indian grouping and no zero-delta noise on number cards
+describe('toNumberCardProps (GAMCS formatting)', () => {
+  it('groups money the Indian way, in whole rupees', () => {
+    const props = toNumberCardProps({ title: 'Avg. deal value', value: 1183333.33, prefix: '₹', delta: 0 })
+    expect(props.format?.(1183333.33)).toBe('11,83,333')
+    expect(props).not.toHaveProperty('delta')
+  })
+  it('keeps one decimal on small counts and a non-zero delta', () => {
+    const props = toNumberCardProps({ title: 'Avg. time', value: 18.18, delta: -5.7 })
+    expect(props.format?.(18.18)).toBe('18.2')
+    expect(props.delta).toBe(-5.7)
+  })
+})

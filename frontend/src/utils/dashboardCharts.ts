@@ -69,10 +69,21 @@ export type DashboardChartConfig = Partial<
 
 export type AxisChartKind = 'line' | 'area' | 'bar'
 
+// GAMCS: Indian digit grouping (₹12,00,000), whole rupees, and no "0%" delta noise
+const indian = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 })
+const indianDecimal = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 1 })
+
+export function formatIndianNumber(value: number, isMoney = false): string {
+  return (isMoney || Math.abs(value) >= 100 ? indian : indianDecimal).format(value)
+}
+
 export function toNumberCardProps(config: NumberChartConfig): NumberCardProps {
-  const props = { ...config }
+  const props = { ...config } as NumberChartConfig & Record<string, unknown>
   delete props.tooltip
-  return props
+  const isMoney = Boolean(props.prefix)
+  props.format = (v: number) => formatIndianNumber(v, isMoney)
+  if (!props.delta) delete props.delta
+  return props as NumberCardProps
 }
 
 export function toDonutChartProps(config: DonutChartConfig): DonutChartProps {

@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-full overflow-hidden">
+  <div class="gamcs-canvas flex flex-col h-full overflow-hidden">
     <LayoutHeader>
       <template #left-header>
         <ViewBreadcrumbs routeName="Dashboard" />
@@ -41,7 +41,11 @@
       </template>
     </LayoutHeader>
 
-    <div class="p-5 pb-2 flex items-center gap-4">
+    <div class="w-full overflow-y-auto">
+    <!-- GAMCS: greeting + follow-up KPI cards, filters as pills on the right -->
+    <DashboardGreeting class="px-5 pt-6 sm:px-6">
+      <template #filters>
+    <div class="flex flex-wrap items-center gap-2">
       <Dropdown
         v-if="!showDatePicker"
         v-model="preset"
@@ -117,13 +121,16 @@
       </Link>
     </div>
 
-    <div class="w-full overflow-y-scroll">
+      </template>
+    </DashboardGreeting>
+    <div class="w-full px-1 pb-6">
       <DashboardGrid
         v-if="!dashboardItems.loading && dashboardItems.data"
         v-model="dashboardItems.data"
         class="pt-1"
         :editing="editing"
       />
+    </div>
     </div>
   </div>
   <AddChartModal
@@ -139,6 +146,7 @@ import LucideRefreshCcw from '~icons/lucide/refresh-ccw'
 import LucideUndo2 from '~icons/lucide/undo-2'
 import LucidePenLine from '~icons/lucide/pen-line'
 import DashboardGrid from '@/components/Dashboard/DashboardGrid.vue'
+import DashboardGreeting from '@/components/Dashboard/DashboardGreeting.vue' // GAMCS
 import UserAvatar from '@/components/UserAvatar.vue'
 import ViewBreadcrumbs from '@/components/ViewBreadcrumbs.vue'
 import LayoutHeader from '@/components/LayoutHeader.vue'

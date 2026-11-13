@@ -42,6 +42,11 @@
   >
     <AssignTo v-model="assignees.data" doctype="CRM Deal" :docname="dealId" />
     <div class="flex items-center gap-2">
+      <Button
+        :label="__('Log activity')"
+        icon-left="lucide-plus"
+        @click="showQuickLog = true"
+      /><!-- GAMCS F15 on mobile (D13) -->
       <CustomActions
         v-if="document._actions?.length"
         :actions="document._actions"
@@ -213,6 +218,13 @@
             </SidePanelLayout>
           </div>
         </div>
+        <ProposalsTab
+          v-else-if="tab.value === 'proposals'"
+          :deal="dealId"
+          :currency="doc.currency"
+          @changed="document.reload()"
+          @accepted="showReconcile = true"
+        /><!-- GAMCS F6 on mobile -->
         <Activities
           v-else
           v-model:reload="reload"
@@ -257,6 +269,28 @@
     :title="doc.organization"
     name="Deals"
   />
+  <!-- GAMCS: the same Won, reconcile and quick-log dialogs as desktop (D13: mobile web is the mobile app) -->
+  <QuickLog
+    v-model="showQuickLog"
+    doctype="CRM Deal"
+    :docname="dealId"
+    @logged="() => { reload = true; document.reload() }"
+  />
+  <WonModal
+    v-if="showWonModal"
+    v-model="showWonModal"
+    :dealId="dealId"
+    :status="wonStatus"
+    @won="() => { document.reload(); reload = true }"
+    @cancel="() => (doc.status = document.originalDoc?.status || doc.status)"
+    @reconcile="showReconcile = true"
+  />
+  <ReconcileModal
+    v-if="showReconcile"
+    v-model="showReconcile"
+    :dealId="dealId"
+    @saved="() => { document.reload(); reload = true }"
+  />
   <LostReasonModal
     v-if="showLostReasonModal"
     v-model="showLostReasonModal"
@@ -282,6 +316,10 @@ import WhatsAppIcon from '@/components/Icons/WhatsAppIcon.vue'
 import IndicatorIcon from '@/components/Icons/IndicatorIcon.vue'
 import ArrowUpRightIcon from '@/components/Icons/ArrowUpRightIcon.vue'
 import FileTextIcon from '@/components/Icons/FileTextIcon.vue'
+import QuickLog from '@/components/QuickLog.vue' // GAMCS
+import WonModal from '@/components/Modals/WonModal.vue' // GAMCS F7
+import ReconcileModal from '@/components/Modals/ReconcileModal.vue' // GAMCS D42
+import ProposalsTab from '@/components/Proposals/ProposalsTab.vue' // GAMCS F6
 import SuccessIcon from '@/components/Icons/SuccessIcon.vue'
 import LayoutHeader from '@/components/LayoutHeader.vue'
 import Activities from '@/components/Activities/Activities.vue'
@@ -499,6 +537,12 @@ const tabs = computed(() => {
       condition: () => whatsappEnabled.value,
     },
     {
+      name: 'Proposals', // GAMCS F6
+      value: 'proposals',
+      label: __('Proposals'),
+      iconLeft: FileTextIcon,
+    },
+    {
       name: 'Quotations',
       value: 'quotations',
       label: __('Quotations'),
@@ -657,7 +701,18 @@ function statusLabel(status) {
   return status
 }
 
+// GAMCS F7: a Won-type status opens the Won dialog; the server refuses Won without it
+const showWonModal = ref(false)
+const wonStatus = ref('')
+const showReconcile = ref(false)
+const showQuickLog = ref(false)
+
 async function triggerStatusChange(value) {
+  if (getDealStatus(value)?.type === 'Won' && !doc.value.engagement) {
+    wonStatus.value = value
+    showWonModal.value = true
+    return
+  }
   await triggerOnChange('status', value)
   setLostReason()
 }

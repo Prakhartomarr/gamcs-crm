@@ -1,10 +1,10 @@
 <!-- GAMCS D42: the accepted amount beside the structure's TCV; save the structure that makes them agree -->
 <template>
-  <Dialog v-model:open="show" :title="__('Reconcile billing structure')" :size="'xl'">
+  <Dialog v-model:open="show" :title="__('Line up the billing terms')" :size="'xl'">
     <template #default>
       <div v-if="!suggestion.data" class="py-6 text-center text-ink-gray-5">{{ __('Loading') }}</div>
       <div v-else data-testid="reconcile-dialog">
-        <div class="mb-4 grid grid-cols-3 gap-3 rounded border p-3 text-base">
+        <div class="mb-4 grid grid-cols-1 gap-4 rounded-2xl bg-[var(--gamcs-ice)] p-4 text-base sm:grid-cols-3">
           <div>
             <div class="text-sm text-ink-gray-5">{{ __('Accepted final value') }}</div>
             <div class="font-medium text-ink-gray-9">{{ money(suggestion.data.amount) }}</div>
@@ -23,7 +23,7 @@
         <div class="mb-3 text-p-base text-ink-gray-7">
           {{ __('The suggested change keeps the frequency and term and adjusts the amount so TCV equals the accepted value. Edit any field; the preview uses the same arithmetic as the save.') }}
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Link :label="__('Billing frequency')" doctype="GAMCS Billing Frequency" v-model="form.billing_frequency" @update:modelValue="refresh" />
           <FormControl type="number" :label="__('Contract duration (months)')" v-model="form.contract_duration_months" @update:modelValue="refresh" />
           <FormControl type="number" :label="__('Billed amount per period (excl. tax)')" v-model="form.billed_amount" @update:modelValue="refresh" data-testid="reconcile-billed" />
@@ -47,7 +47,7 @@
 </template>
 <script setup>
 import Link from '@/components/Controls/Link.vue'
-import { Dialog, FormControl, ErrorMessage, createResource, call, debounce } from 'frappe-ui'
+import { Dialog, FormControl, ErrorMessage, createResource, call, debounce, toast } from 'frappe-ui'
 import { reactive, ref } from 'vue'
 
 const props = defineProps({ dealId: { type: String, required: true } })
@@ -92,6 +92,7 @@ async function save() {
   try {
     await call('frappe.client.set_value', { doctype: 'CRM Deal', name: props.dealId, fieldname: { ...form } })
     show.value = false
+    toast.success(__('Billing terms saved. They now add up to the agreed {0}.', [money(live.value?.tcv)]))
     emit('saved')
   } catch (e) {
     error.value = e.messages?.[0] || e.message

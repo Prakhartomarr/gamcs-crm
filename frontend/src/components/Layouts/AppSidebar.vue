@@ -8,7 +8,7 @@
        column falls through to the white page canvas. The token cannot be
        overridden on the Sidebar element itself — `bg-surface-sidebar` is emitted
        after `bg-surface-gray-1` in the utilities layer and would win. -->
-  <div class="relative flex h-full bg-surface-gray-1">
+  <div class="gamcs-sidebar-bg relative flex h-full bg-surface-gray-1">
     <Sidebar
       v-model:collapsed="isSidebarCollapsed"
       :collapsible="!mobile"
@@ -135,10 +135,6 @@
               :afterUpgrade="() => capture('upgrade_plan_from_trial_banner')"
             />
             <TrialCard v-if="!isCollapsed" />
-            <GettingStartedBanner
-              v-if="!isOnboardingStepsCompleted"
-              :isSidebarCollapsed="isCollapsed"
-            />
           </div>
           <SidebarItem
             v-if="isManager() && isDemoDataCreated"
@@ -150,15 +146,7 @@
               <BrushCleaningIcon class="size-4" />
             </template>
           </SidebarItem>
-          <SidebarItem
-            v-if="isOnboardingStepsCompleted"
-            :label="__('Help')"
-            @click="toggleHelpModal"
-          >
-            <template #prefix>
-              <HelpIcon class="size-4 text-ink-gray-7" />
-            </template>
-          </SidebarItem>
+          <!-- GAMCS: upstream's onboarding banner and Frappe help centre removed; About lives in the user menu -->
           <SidebarItem
             :label="isCollapsed ? __('Expand') : __('Collapse')"
             @click="isSidebarCollapsed = !isSidebarCollapsed"
@@ -178,21 +166,6 @@
 
   <template v-if="!mobile">
     <Settings />
-    <HelpModal
-      v-if="showHelpModal"
-      v-model="showHelpModal"
-      v-model:articles="articles"
-      :logo="CRMLogo"
-      :afterSkip="(step) => capture('onboarding_step_skipped_' + step)"
-      :afterSkipAll="() => capture('onboarding_steps_skipped')"
-      :afterReset="(step) => capture('onboarding_step_reset_' + step)"
-      :afterResetAll="() => capture('onboarding_steps_reset')"
-      docsLink="https://docs.frappe.io/crm"
-    />
-    <IntermediateStepModal
-      v-model="showIntermediateModal"
-      :currentStep="currentStep"
-    />
   </template>
 </template>
 
@@ -296,24 +269,32 @@ const isDemoSite = ref(window.is_demo_site)
 const links = getNavigationItems({ mobile: props.mobile })
 
 const allViews = computed(() => {
-  let _views = [
-    {
-      name: 'All Views',
-      hideLabel: true,
-      opened: true,
-      views: links.map((link) => ({
-        label: link.label,
-        icon: link.icon,
-        key: link.route,
-        to: { name: link.route },
-        // GAMCS F2: follow-up count badge
-        badge:
-          link.route === 'FollowUps'
-            ? () => followUpCounts.data?.counts?.badge || 0
-            : undefined,
-      })),
-    },
-  ]
+  // GAMCS: nav chunked into short labelled groups (Miller's law, ≤ 7 per group)
+  const groups = []
+  for (const link of links) {
+    let group = groups.find((g) => g.name === (link.group || 'All Views'))
+    if (!group) {
+      group = {
+        name: link.group || 'All Views',
+        hideLabel: !link.group || props.mobile,
+        opened: true,
+        views: [],
+      }
+      groups.push(group)
+    }
+    group.views.push({
+      label: link.label,
+      icon: link.icon,
+      key: link.route,
+      to: { name: link.route },
+      // GAMCS F2: follow-up count badge
+      badge:
+        link.route === 'FollowUps'
+          ? () => followUpCounts.data?.counts?.badge || 0
+          : undefined,
+    })
+  }
+  let _views = groups
   if (getPublicViews().length) {
     _views.push({
       name: 'Public Views',

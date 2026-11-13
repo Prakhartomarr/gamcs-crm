@@ -16,11 +16,6 @@
         v-if="document.actions?.length"
         :actions="document.actions"
       />
-      <Button
-        :label="__('Log activity')"
-        icon-left="lucide-plus"
-        @click="showQuickLog = true"
-      /><!-- GAMCS F15 -->
       <EnrichFromWebsite
         doctype="CRM Deal"
         :docname="dealId"
@@ -44,44 +39,58 @@
     </template>
   </LayoutHeader>
   <div v-if="doc.name" class="flex h-full overflow-hidden">
-    <Tabs
-      ref="dealTabsRef"
-      v-model="activeTab"
-      as="div"
-      :tabs="tabs"
-      class="flex flex-1 overflow-hidden flex-col [&_[role='tab']]:px-1 [&_[role='tab']]:shrink-0 [&_[role='tablist']]:px-5 [&_[role='tablist']::-webkit-scrollbar]:h-0 [&_[role='tablist']]:min-h-[45px] [&_[role='tablist']]:gap-[22px] [&>[role='tabpanel']:not([hidden])]:flex [&>[role='tabpanel']:not([hidden])]:grow [&>[data-slot=tab-list]]:overflow-x-auto [&_[data-slot=tab-indicator]]:translate-y-0 [&>[data-slot=tab-panel]]:min-h-0 [&>[data-slot=tab-panel]]:flex-col [&>[data-slot=tab-panel]]:overflow-auto"
-    >
-      <template #tab-panel>
-        <div class="flex flex-1 flex-col overflow-hidden"><!-- GAMCS: banner + panel -->
-        <div
-          v-if="doc.needs_reconciliation"
-          class="mx-5 mt-3 flex items-center justify-between gap-3 rounded border border-orange-300 bg-orange-50 px-3 py-2 text-base text-ink-gray-8"
-          data-testid="reconcile-banner"
-        >
-          <span>{{ __('The billing structure gives a TCV that differs from the accepted final value by {0}. Reconcile it before marking Won (D42).', [doc.tcv_variance]) }}</span>
-          <Button :label="__('Reconcile')" variant="subtle" @click="showReconcile = true" />
-        </div>
-        <ProposalsTab
-          v-if="activeTab === 'proposals'"
-          :deal="dealId"
-          :currency="doc.currency"
-          @changed="reloadResources"
-          @accepted="onProposalAccepted"
-        /><!-- GAMCS F6 -->
-        <Activities
-          v-else
-          ref="activities"
-          v-model:reload="reload"
-          v-model:activeTab="activeTab"
-          doctype="CRM Deal"
-          :docname="dealId"
-          :tabs="tabs"
-          @beforeSave="beforeStatusChange"
-          @afterSave="reloadResources"
-        />
-        </div>
-      </template>
-    </Tabs>
+    <!-- GAMCS: header card (stage track + next action) above the tabs -->
+    <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <RecordSummary
+        :status="doc.status"
+        :options="statuses"
+        :getStatus="getDealStatus"
+        :nextActionType="doc.next_action_type"
+        :nextStep="doc.next_step"
+        :nextActionDate="doc.next_action_date"
+        :nextActionOwner="doc.next_action_owner"
+        :facts="dealFacts"
+        @log="showQuickLog = true"
+      />
+      <Tabs
+        ref="dealTabsRef"
+        v-model="activeTab"
+        as="div"
+        :tabs="tabs"
+        class="flex flex-1 overflow-hidden flex-col [&_[role='tab']]:px-1 [&_[role='tab']]:shrink-0 [&_[role='tablist']]:px-5 [&_[role='tablist']::-webkit-scrollbar]:h-0 [&_[role='tablist']]:min-h-[45px] [&_[role='tablist']]:gap-[22px] [&>[role='tabpanel']:not([hidden])]:flex [&>[role='tabpanel']:not([hidden])]:grow [&>[data-slot=tab-list]]:overflow-x-auto [&_[data-slot=tab-indicator]]:translate-y-0 [&>[data-slot=tab-panel]]:min-h-0 [&>[data-slot=tab-panel]]:flex-col [&>[data-slot=tab-panel]]:overflow-auto"
+      >
+        <template #tab-panel>
+          <div class="flex flex-1 flex-col overflow-hidden"><!-- GAMCS: banner + panel -->
+          <div
+            v-if="doc.needs_reconciliation"
+            class="mx-5 mt-3 flex items-center justify-between gap-3 rounded-2xl bg-surface-amber-1 px-4 py-2 text-base text-ink-gray-8"
+            data-testid="reconcile-banner"
+          >
+            <span>{{ __('The billing terms are {0} away from the agreed final value. Line them up before marking this deal won.', [formatMoney(Math.abs(doc.tcv_variance), doc.currency)]) }}</span>
+            <Button :label="__('Fix the terms')" variant="subtle" @click="showReconcile = true" />
+          </div>
+          <ProposalsTab
+            v-if="activeTab === 'proposals'"
+            :deal="dealId"
+            :currency="doc.currency"
+            @changed="reloadResources"
+            @accepted="onProposalAccepted"
+          /><!-- GAMCS F6 -->
+          <Activities
+            v-else
+            ref="activities"
+            v-model:reload="reload"
+            v-model:activeTab="activeTab"
+            doctype="CRM Deal"
+            :docname="dealId"
+            :tabs="tabs"
+            @beforeSave="beforeStatusChange"
+            @afterSave="reloadResources"
+          />
+          </div>
+        </template>
+      </Tabs>
+    </div>
     <Resizer side="right" class="flex flex-col justify-between border-l">
       <div
         class="flex h-[45px] cursor-copy items-center border-b px-5 py-2.5 text-lg-medium text-ink-gray-9"
@@ -340,7 +349,7 @@
     v-model="showQuickLog"
     doctype="CRM Deal"
     :docname="dealId"
-    @logged="() => activities?.all_activities?.reload()"
+    @logged="() => { activities?.all_activities?.reload(); document.reload() }"
   /><!-- GAMCS F15 -->
   <WonModal
     v-if="showWonModal"
@@ -417,6 +426,8 @@ import OrganizationModal from '@/components/Modals/OrganizationModal.vue'
 import LostReasonModal from '@/components/Modals/LostReasonModal.vue'
 import AssignTo from '@/components/AssignTo.vue'
 import QuickLog from '@/components/QuickLog.vue' // GAMCS
+import RecordSummary from '@/components/RecordSummary.vue' // GAMCS
+import { formatDay, formatMoney } from '@/utils/gamcs' // GAMCS
 import WonModal from '@/components/Modals/WonModal.vue' // GAMCS F7
 import ManualRateModal from '@/components/Modals/ManualRateModal.vue' // GAMCS D29
 import ProposalsTab from '@/components/Proposals/ProposalsTab.vue' // GAMCS F6
@@ -577,6 +588,18 @@ const reload = ref(false)
 const showOrganizationModal = ref(false)
 const showFilesUploader = ref(false)
 const showQuickLog = ref(false) // GAMCS
+// GAMCS: the few numbers worth seeing without opening the side panel
+const dealFacts = computed(() => {
+  const d = doc.value
+  const out = []
+  if (d.acv || d.deal_value)
+    out.push({ label: __('ACV'), value: formatMoney(d.acv || d.deal_value, d.currency) })
+  if (d.probability) out.push({ label: __('Probability'), value: `${Math.round(d.probability)}%` })
+  if (d.expected_closure_date)
+    out.push({ label: __('Close by'), value: formatDay(d.expected_closure_date) })
+  return out
+})
+
 // GAMCS F7: a Won-type status opens the onboarding dialog; the server refuses Won without it
 const showWonModal = ref(false)
 const wonStatus = ref('')

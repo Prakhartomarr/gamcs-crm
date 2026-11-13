@@ -154,15 +154,17 @@ test.describe('Money: commercials, proposals, Won and Lost', () => {
 		await page.getByRole('menuitem', { name: 'Won' }).click()
 		const dialog = page.getByTestId('won-dialog')
 		await expect(dialog).toBeVisible()
-		await expect(dialog.getByLabel(/Final client name/)).toHaveValue(orgName) // D36
-		await expect(dialog.getByLabel(/Final commercial/)).toHaveValue('1100000') // from the accepted proposal
-		await expect(dialog.getByLabel(/Final commercial/)).toBeDisabled()
-		await expect(dialog.getByLabel(/Expected annual revenue/)).toHaveValue(/11,00,000|1,100,000/) // D35, after D42 reconciliation
-		await expect(dialog.getByLabel(/Contract duration/)).toHaveValue('12')
+		await expect(dialog.getByLabel(/Client legal name/)).toHaveValue(orgName) // D36
+		await expect(dialog.getByLabel(/Final value/)).toHaveValue('1100000') // from the accepted proposal
+		await expect(dialog.getByLabel(/Final value/)).toBeDisabled()
+		await expect(dialog.getByTestId('won-acv')).toContainText('11,00,000') // D35, after D42 reconciliation
+		await expect(dialog.getByLabel(/Duration \(months\)/)).toHaveValue('12')
 		await expect(dialog.getByText('FP&A')).toBeVisible()
 		await dialog.getByLabel('Contract signed').check()
-		await page.getByRole('button', { name: 'Confirm Won' }).click()
-		await expect(page.getByText(/Won\. Engagement/)).toBeVisible()
+		await page.getByRole('button', { name: 'Confirm won' }).click()
+		// peak-end: a success state with the outcome, then one button back to the deal
+		await expect(page.getByTestId('won-success')).toContainText(orgName)
+		await page.getByRole('button', { name: 'Done', exact: true }).click()
 		await expect(page.getByRole('button', { name: 'Won', exact: true })).toBeVisible()
 
 		const doc = await getDoc<{ status: string; engagement: string; probability: number }>(request, 'CRM Deal', deal)

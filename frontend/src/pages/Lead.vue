@@ -36,11 +36,6 @@
           </Button>
         </template>
       </Dropdown>
-      <Button
-        :label="__('Log activity')"
-        icon-left="lucide-plus"
-        @click="showQuickLog = true"
-      /><!-- GAMCS F15 -->
       <Tooltip
         :disabled="!isLeadConversionDisabled"
         :text="__('Cannot convert a lost lead to deal')"
@@ -57,24 +52,39 @@
     </template>
   </LayoutHeader>
   <div v-if="doc.name" class="flex h-full overflow-hidden">
-    <Tabs
-      v-model="activeTab"
-      :tabs="tabs"
-      class="flex flex-1 overflow-hidden flex-col [&_[role='tab']]:px-1 [&_[role='tab']]:shrink-0 [&_[role='tablist']]:px-5 [&_[role='tablist']::-webkit-scrollbar]:h-0 [&_[role='tablist']]:min-h-[45px] [&_[role='tablist']]:gap-[22px] [&>[role='tabpanel']:not([hidden])]:flex [&>[role='tabpanel']:not([hidden])]:grow [&>[data-slot=tab-list]]:overflow-x-auto [&_[data-slot=tab-indicator]]:translate-y-0 [&>[data-slot=tab-panel]]:min-h-0 [&>[data-slot=tab-panel]]:flex-col [&>[data-slot=tab-panel]]:overflow-auto"
-    >
-      <template #tab-panel>
-        <Activities
-          ref="activities"
-          v-model:reload="reload"
-          v-model:activeTab="activeTab"
-          doctype="CRM Lead"
-          :docname="leadId"
-          :tabs="tabs"
-          @beforeSave="beforeStatusChange"
-          @afterSave="reloadResources"
-        />
-      </template>
-    </Tabs>
+    <!-- GAMCS: header card (stage track + next action) above the tabs -->
+    <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <RecordSummary
+        :status="doc.status"
+        :options="statuses"
+        :getStatus="getLeadStatus"
+        :nextActionType="doc.next_action_type"
+        :nextStep="doc.next_step"
+        :nextActionDate="doc.next_action_date"
+        :nextActionOwner="doc.next_action_owner"
+        :lockedTypes="['Won']"
+        :facts="leadFacts"
+        @log="showQuickLog = true"
+      />
+      <Tabs
+        v-model="activeTab"
+        :tabs="tabs"
+        class="flex flex-1 overflow-hidden flex-col [&_[role='tab']]:px-1 [&_[role='tab']]:shrink-0 [&_[role='tablist']]:px-5 [&_[role='tablist']::-webkit-scrollbar]:h-0 [&_[role='tablist']]:min-h-[45px] [&_[role='tablist']]:gap-[22px] [&>[role='tabpanel']:not([hidden])]:flex [&>[role='tabpanel']:not([hidden])]:grow [&>[data-slot=tab-list]]:overflow-x-auto [&_[data-slot=tab-indicator]]:translate-y-0 [&>[data-slot=tab-panel]]:min-h-0 [&>[data-slot=tab-panel]]:flex-col [&>[data-slot=tab-panel]]:overflow-auto"
+      >
+        <template #tab-panel>
+          <Activities
+            ref="activities"
+            v-model:reload="reload"
+            v-model:activeTab="activeTab"
+            doctype="CRM Lead"
+            :docname="leadId"
+            :tabs="tabs"
+            @beforeSave="beforeStatusChange"
+            @afterSave="reloadResources"
+          />
+        </template>
+      </Tabs>
+    </div>
     <Resizer class="flex flex-col justify-between border-l" side="right">
       <div
         class="flex h-[45px] cursor-copy items-center border-b px-5 py-2.5 text-lg-medium text-ink-gray-9"
@@ -227,7 +237,7 @@
     v-model="showQuickLog"
     doctype="CRM Lead"
     :docname="leadId"
-    @logged="() => activities?.all_activities?.reload()"
+    @logged="() => { activities?.all_activities?.reload(); document.reload() }"
   /><!-- GAMCS F15 -->
   <FilesUploader
     v-model="showFilesUploader"
@@ -278,6 +288,7 @@ import LayoutHeader from '@/components/LayoutHeader.vue'
 import Activities from '@/components/Activities/Activities.vue'
 import AssignTo from '@/components/AssignTo.vue'
 import QuickLog from '@/components/QuickLog.vue' // GAMCS
+import RecordSummary from '@/components/RecordSummary.vue' // GAMCS
 import FilesUploader from '@/components/FilesUploader/FilesUploader.vue'
 import SidePanelLayout from '@/components/SidePanelLayout.vue'
 import SLASection from '@/components/SLASection.vue'
@@ -339,6 +350,15 @@ const errorMessage = ref('')
 const showDeleteLinkedDocModal = ref(false)
 const showConvertToDealModal = ref(false)
 const showQuickLog = ref(false) // GAMCS
+// GAMCS: the few facts worth seeing without opening the side panel
+const leadFacts = computed(() => {
+  const d = doc.value
+  return [
+    d.organization && { label: __('Organisation'), value: d.organization },
+    d.source && { label: __('Source'), value: d.source },
+  ].filter(Boolean)
+})
+
 const showFilesUploader = ref(false)
 
 const {
