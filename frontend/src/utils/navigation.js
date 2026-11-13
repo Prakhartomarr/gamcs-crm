@@ -10,6 +10,7 @@ import LucideHandshake from '~icons/lucide/handshake' // GAMCS
 import LucideListChecks from '~icons/lucide/list-checks' // GAMCS
 import LucideScrollText from '~icons/lucide/scroll-text' // GAMCS
 import { usersStore } from '@/stores/users' // GAMCS
+import { getActivePinia } from 'pinia' // GAMCS
 import router from '@/router'
 
 export const navigationItems = [
@@ -30,7 +31,8 @@ export const navigationItems = [
     label: 'Audit log',
     icon: LucideScrollText,
     route: 'AuditLog',
-    condition: () => usersStore().isManager(),
+    // no store outside the app (unit tests): hide rather than throw
+    condition: () => Boolean(getActivePinia()) && usersStore().isManager(),
   },
   { label: 'Notes', icon: NoteIcon, route: 'Notes' },
   { label: 'Tasks', icon: TaskIcon, route: 'Tasks' },

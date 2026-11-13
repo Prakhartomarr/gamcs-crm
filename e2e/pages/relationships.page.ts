@@ -25,7 +25,7 @@ export class RelationshipsPage {
 	}
 
 	async openCreateModal() {
-		await this.page.getByRole('button', { name: 'Create', exact: true }).click()
+		await this.page.locator('#app-header').getByRole('button', { name: 'Create', exact: true }).click()
 		await expect(
 			this.page.getByRole('heading', { name: 'Create Relationship' }),
 		).toBeVisible()
