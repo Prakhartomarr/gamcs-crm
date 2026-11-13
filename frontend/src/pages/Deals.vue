@@ -411,7 +411,9 @@ function parseRows(rows, columns = []) {
       }
 
       if (fieldType && fieldType == 'Currency') {
-        _rows[row] = getFormattedCurrency(row, deal)
+        // GAMCS round 5: an unpriced deal reads "—", not "₹ 0.00" (E49). Display only:
+        // sorting runs on the server's raw value, so empty rows still sort as zero.
+        _rows[row] = Number(deal[row]) ? getFormattedCurrency(row, deal) : '—'
       }
 
       if (fieldType && fieldType == 'Float') {
