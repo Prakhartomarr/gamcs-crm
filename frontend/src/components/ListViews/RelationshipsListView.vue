@@ -134,17 +134,15 @@ import MultipleAvatar from '@/components/MultipleAvatar.vue'
 import IndicatorIcon from '@/components/Icons/IndicatorIcon.vue'
 import ListBulkActions from '@/components/ListBulkActions.vue'
 import ListRows from '@/components/ListViews/ListRows.vue'
+import { Avatar, Dropdown, Tooltip } from 'frappe-ui'
 import {
-  Avatar,
   ListView,
   ListHeader,
   ListHeaderItem,
   ListRowItem,
   ListSelectBanner,
   ListFooter,
-  Dropdown,
-  Tooltip,
-} from 'frappe-ui'
+} from 'frappe-ui/experimental'
 import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
