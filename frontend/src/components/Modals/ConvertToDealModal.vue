@@ -3,7 +3,7 @@
     <template #title>
       <div class="flex items-center justify-between">
         <h3 class="text-3xl-semibold leading-6 text-ink-gray-9">
-          {{ __('Convert to Deal') }}
+          {{ __('Convert to deal') }}
         </h3>
         <Button
           v-if="isManager() && !isMobileView"
@@ -74,7 +74,9 @@
       <ErrorMessage class="mt-4" :message="error" />
     </template>
     <template #actions>
-      <div class="flex justify-end">
+      <!-- GAMCS (UI_REVIEW W6): Cancel secondary, primary bottom right, success toast -->
+      <div class="flex justify-end gap-2">
+        <Button :label="__('Cancel')" @click="show = false" />
         <Button :label="__('Convert')" variant="solid" @click="convertToDeal" />
       </div>
     </template>
@@ -95,7 +97,7 @@ import { showQuickEntryModal, quickEntryProps } from '@/composables/modals'
 import { isMobileView } from '@/composables/settings'
 import { useTelemetry } from '@framework/ui/telemetry'
 import { useCrmOnboarding } from '@/composables/onboarding'
-import { Switch, Dialog, createResource, call } from 'frappe-ui'
+import { Switch, Dialog, createResource, call, toast } from 'frappe-ui'
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -171,6 +173,11 @@ async function convertToDeal() {
     error.value = __('Error converting to deal: {0}', [err.messages?.[0]])
   })
   if (_deal) {
+    const convertedName =
+      existingOrganization.value ||
+      props.lead.organization ||
+      props.lead.lead_name ||
+      __('This lead')
     show.value = false
     existingContactChecked.value = false
     existingOrganizationChecked.value = false
@@ -181,6 +188,12 @@ async function convertToDeal() {
       localStorage.setItem('firstDeal' + user, _deal)
     })
     capture('convert_lead_to_deal')
+    toast.success(
+      __('Converted. {0} is now a deal in {1}.', [
+        convertedName,
+        deal.doc?.status || __('the first stage'),
+      ]),
+    )
     router.push({ name: 'Deal', params: { dealId: _deal } })
   }
 }

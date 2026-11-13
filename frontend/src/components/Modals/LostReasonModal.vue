@@ -1,9 +1,10 @@
 <template>
-  <Dialog v-model:open="show" :title="__('Lost Reason')" @close="cancel">
+  <!-- GAMCS (UI_REVIEW W5): sentence case, outcome-named primary, success toast -->
+  <Dialog v-model:open="show" :title="__('Mark as lost')" @close="cancel">
     <template #default>
       <div class="-mt-3 mb-4 text-p-base text-ink-gray-7">
         {{
-          __('Please provide a reason for marking this {0} as lost', [
+          __('Why was this {0} lost? The reason feeds the lost-reasons report.', [
             doctype.toLowerCase().replace('crm ', ''),
           ])
         }}
@@ -11,7 +12,7 @@
       <div class="flex flex-col gap-3">
         <div>
           <div class="mb-2 text-sm text-ink-gray-5">
-            {{ __('Lost Reason') }}
+            {{ __('Reason') }}
             <span class="text-ink-red-4">*</span>
           </div>
           <Link
@@ -25,7 +26,7 @@
         </div>
         <div>
           <div class="mb-2 text-sm text-ink-gray-5">
-            {{ __('Lost Notes') }}
+            {{ lostReason == 'Other' ? __('What happened') : __('What happened (optional)') }}
             <span v-if="lostReason == 'Other'" class="text-ink-red-4">*</span>
           </div>
           <FormControl
@@ -42,7 +43,7 @@
         <div><ErrorMessage :message="error" /></div>
         <div class="flex gap-2">
           <Button :label="__('Cancel')" @click="cancel" />
-          <Button variant="solid" :label="__('Save')" @click="save" />
+          <Button variant="solid" :label="__('Mark as lost')" @click="save" />
         </div>
       </div>
     </template>
@@ -51,7 +52,7 @@
 <script setup>
 import Link from '@/components/Controls/Link.vue'
 import { createDocument } from '@/composables/document'
-import { Dialog } from 'frappe-ui'
+import { Dialog, toast } from 'frappe-ui'
 import { ref } from 'vue'
 
 const props = defineProps({
@@ -82,11 +83,11 @@ function cancel() {
 
 function save() {
   if (!lostReason.value) {
-    error.value = __('Lost Reason is required')
+    error.value = __('Pick a reason')
     return
   }
   if (lostReason.value === 'Other' && !lostNotes.value) {
-    error.value = __('Lost Notes are required when Lost Reason is "Other"')
+    error.value = __('Say what happened when the reason is "Other"')
     return
   }
 
@@ -96,7 +97,14 @@ function save() {
   if (doc) {
     doc.lost_reason = lostReason.value
     doc.lost_notes = lostNotes.value
-    props.document.save.submit()
+    props.document.save.submit(null, {
+      onSuccess: () =>
+        toast.success(
+          __('Marked lost: {0}. It stays in the lost-reasons report.', [
+            doc.lost_reason,
+          ]),
+        ),
+    })
   }
   emit('save', { lost_reason: lostReason.value, lost_notes: lostNotes.value })
   lostReason.value = ''

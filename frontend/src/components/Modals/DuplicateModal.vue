@@ -11,13 +11,13 @@
           :key="m.doctype + m.name"
           :href="m.route"
           target="_blank"
-          class="flex items-center justify-between py-2 text-base hover:bg-surface-gray-1"
+          class="flex items-center justify-between gap-3 rounded-lg px-2 py-2 text-base hover:bg-surface-gray-1"
         >
-          <div>
-            <span class="font-medium text-ink-gray-9">{{ m.title }}</span>
-            <span class="ml-2 text-ink-gray-5">{{ m.doctype.replace('CRM ', '').replace('GAMCS ', '') }} · {{ m.name }}</span>
+          <div class="flex min-w-0 items-center gap-2">
+            <span class="truncate font-medium text-ink-gray-9">{{ m.title }}</span>
+            <span class="gamcs-pill gamcs-pill-gray">{{ m.doctype.replace('CRM ', '').replace('GAMCS ', '') }}</span>
           </div>
-          <div class="text-sm text-ink-gray-5">{{ m.matched_on.join(', ') }}</div>
+          <div class="shrink-0 text-sm text-ink-gray-6">{{ __('Same {0}', [m.matched_on.join(', ')]) }}</div>
         </a>
       </div>
     </template>
