@@ -150,7 +150,7 @@ test.describe('Money: commercials, proposals, Won and Lost', () => {
 	test('Won dialog is pre-filled and confirming creates one engagement', async ({ page, request }) => {
 		await page.goto(`/crm/deals/${deal}`)
 		await page.waitForLoadState('networkidle')
-		await page.getByRole('button', { name: 'Negotiation' }).click()
+		await page.getByTestId('status-dropdown').click() // the header stage track also has a 'Negotiation' button
 		await page.getByRole('menuitem', { name: 'Won' }).click()
 		const dialog = page.getByTestId('won-dialog')
 		await expect(dialog).toBeVisible()

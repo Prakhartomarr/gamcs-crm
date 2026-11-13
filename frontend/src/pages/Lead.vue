@@ -27,6 +27,7 @@
         <template #default="{ open }">
           <Button
             v-if="doc.status"
+            data-testid="status-dropdown"
             :label="statusLabel(doc.status)"
             :iconRight="open ? 'lucide-chevron-up' : 'lucide-chevron-down'"
           >
