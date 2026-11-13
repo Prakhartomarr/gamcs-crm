@@ -1,16 +1,18 @@
 <!-- GAMCS F15: one-click activity logging with the next action set in the same dialog -->
 <template>
-  <Dialog v-model:open="show" :size="'xl'">
-    <template #body>
+  <Dialog v-model:open="show" :size="'xl'" bare>
+    <template #default>
       <div
         class="bg-surface-elevation-1 px-4 pb-6 pt-5 sm:px-6"
         @keydown.meta.enter="submit"
         @keydown.ctrl.enter="submit"
       >
         <div class="mb-4 flex items-center justify-between">
-          <h3 class="text-3xl-semibold leading-6 text-ink-gray-9">
-            {{ __('Log activity') }}
-          </h3>
+          <Dialog.Title as-child>
+            <h3 class="text-3xl-semibold leading-6 text-ink-gray-9">
+              {{ __('Log activity') }}
+            </h3>
+          </Dialog.Title>
           <Button
             variant="ghost"
             class="w-7"
@@ -100,6 +102,7 @@ import {
   FormControl,
   ErrorMessage,
   toast,
+  Dialog,
 } from 'frappe-ui'
 import { computed, nextTick, reactive, ref, watch } from 'vue'
 

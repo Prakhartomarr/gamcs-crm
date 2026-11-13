@@ -12,7 +12,7 @@
       <Button
         variant="solid"
         :label="__('Create')"
-        iconLeft="plus"
+        iconLeft="lucide-plus"
         @click="showModal = true"
       />
     </template>
@@ -167,6 +167,14 @@
     v-else-if="relationships.data && !rows.length"
     name="Relationships"
     :icon="LucideHandshake"
+    :title="__('No relationships yet')"
+    :description="
+      __(
+        'A relationship is a partner you work with over time; it can bring in many opportunities.',
+      )
+    "
+    :filtered="!!Object.keys(relationships.params?.filters || {}).length"
+    @create="showModal = true"
   />
   <RelationshipModal
     v-if="showModal"

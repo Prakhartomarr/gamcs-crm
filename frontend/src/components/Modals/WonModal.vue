@@ -4,7 +4,7 @@
   <Dialog
     v-model:open="show"
     :title="__('Mark as Won')"
-    :options="{ size: '2xl' }"
+    :size="'2xl'"
     @close="cancel"
   >
     <template #default>

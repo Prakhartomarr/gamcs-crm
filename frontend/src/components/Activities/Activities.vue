@@ -1,18 +1,18 @@
 <template>
   <ActivityHeader
-    v-model="tabIndex"
+    v-model="activeTab"
     v-model:showWhatsappTemplates="showWhatsappTemplates"
     v-model:showFilesUploader="showFilesUploader"
     v-model:emailBox="emailBox"
-    :tabs="tabs"
     :title="title"
     :doc="doc"
     :whatsappBox="whatsappBox"
     :modalRef="modalRef"
   />
   <FadedScrollableDiv class="flex flex-col h-full overflow-y-auto">
+    <QuotationsList v-if="title == 'Quotations'" :deal="docname" />
     <div
-      v-if="all_activities?.loading"
+      v-else-if="all_activities?.loading"
       class="flex flex-1 flex-col items-center justify-center gap-3 text-2xl-medium text-ink-gray-4"
     >
       <LoadingIndicator class="h-6 w-6" />
@@ -40,7 +40,8 @@
         <div
           v-for="note in activities"
           :key="note.name"
-          @click="modalRef.showNote(note)"
+          :id="note.name"
+          @click="openNote(note, { edit: () => modalRef.showNote(note) })"
         >
           <NoteArea v-model="all_activities" :note="note" />
         </div>
@@ -89,7 +90,7 @@
               >
                 <MissedCallIcon
                   v-if="call.status == 'No Answer'"
-                  class="text-ink-red-8"
+                  class="text-ink-red-7"
                 />
                 <DeclinedCallIcon v-else-if="call.status == 'Busy'" />
                 <component
@@ -157,7 +158,7 @@
                     activity.activity_type,
                   ) && activity.status == 'No Answer'
                 "
-                class="text-ink-red-8"
+                class="text-ink-red-7"
               />
               <DeclinedCallIcon
                 v-else-if="
@@ -181,9 +182,14 @@
           </div>
           <div
             v-if="activity.activity_type == 'communication'"
+            :id="activity.name"
             class="pb-5 mt-px"
           >
-            <EmailArea :activity="activity" :emailBox="emailBox" />
+            <EmailArea
+              :activity="activity"
+              :emailBox="emailBox"
+              @reload="all_activities.reload()"
+            />
           </div>
           <div
             v-else-if="activity.activity_type == 'comment'"
@@ -194,6 +200,72 @@
               :activity="activity"
               @reload="all_activities.reload()"
             />
+          </div>
+          <div
+            v-else-if="activity.activity_type == 'note'"
+            class="mb-4 flex flex-col gap-0.5"
+          >
+            <div
+              class="flex items-center justify-stretch gap-2 py-1.5 text-base"
+            >
+              <div
+                v-if="activity.other_notes"
+                class="inline-flex items-center flex-wrap gap-1.5 text-ink-gray-8 font-medium"
+              >
+                <span>{{
+                  activity.show_others ? __('Hide') : __('Show')
+                }}</span>
+                <span>+{{ activity.other_notes.length + 1 }}</span>
+                <span>{{ __('note updates from') }}</span>
+                <span>{{ activity.owner_name }}</span>
+                <Button
+                  class="!size-4"
+                  variant="ghost"
+                  :icon="SelectIcon"
+                  @click="activity.show_others = !activity.show_others"
+                />
+              </div>
+              <div
+                v-else
+                class="inline-flex items-center flex-wrap gap-1.5 text-ink-gray-8"
+              >
+                <span class="font-medium">{{ activity.owner_name }}</span>
+                <span class="text-ink-gray-5">{{
+                  noteActionText[activity.data.action]
+                }}</span>
+                <button
+                  class="font-medium hover:underline"
+                  @click="viewNote(activity.data.note)"
+                >
+                  {{ activity.data.title }}
+                </button>
+              </div>
+              <div class="ml-auto whitespace-nowrap">
+                <TimelineTimestamp :date="activity.creation" />
+              </div>
+            </div>
+            <template v-if="activity.other_notes && activity.show_others">
+              <div
+                v-for="a in sortByCreation([activity, ...activity.other_notes])"
+                :key="a.name + a.data.action"
+                class="flex items-center justify-stretch gap-2 py-1.5 text-base"
+              >
+                <div class="inline-flex items-center flex-wrap gap-1.5">
+                  <span class="text-ink-gray-5">{{
+                    noteActionText[a.data.action]
+                  }}</span>
+                  <button
+                    class="font-medium text-ink-gray-8 hover:underline"
+                    @click="viewNote(a.data.note)"
+                  >
+                    {{ a.data.title }}
+                  </button>
+                </div>
+                <div class="ml-auto whitespace-nowrap">
+                  <TimelineTimestamp :date="a.creation" />
+                </div>
+              </div>
+            </template>
           </div>
           <div
             v-else-if="activity.activity_type == 'attachment_log'"
@@ -375,7 +447,10 @@
         </div>
       </template>
     </div>
-    <div v-else-if="title == 'Data'" class="h-full flex flex-col px-3 sm:px-10">
+    <div
+      v-else-if="title == 'Data'"
+      class="flex h-full min-h-0 flex-col overflow-hidden px-3 sm:px-10"
+    >
       <DataFields
         v-model:fieldLayoutTabIndex="fieldLayoutTabIndex"
         v-model:fieldLayoutTabName="fieldLayoutTabName"
@@ -442,8 +517,10 @@ import EmailArea from '@/components/Activities/EmailArea.vue'
 import CommentArea from '@/components/Activities/CommentArea.vue'
 import CallArea from '@/components/Activities/CallArea.vue'
 import NoteArea from '@/components/Activities/NoteArea.vue'
+import { useNoteView } from '@/composables/noteView'
 import TaskArea from '@/components/Activities/TaskArea.vue'
 import AttachmentArea from '@/components/Activities/AttachmentArea.vue'
+import QuotationsList from '@/components/Activities/QuotationsList.vue'
 import DataFields from '@/components/Activities/DataFields.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import ActivityIcon from '@/components/Icons/ActivityIcon.vue'
@@ -474,12 +551,13 @@ import AllModals from '@/components/Activities/AllModals.vue'
 import FilesUploader from '@/components/FilesUploader/FilesUploader.vue'
 import TimelineTimestamp from '@/components/Activities/TimelineTimestamp.vue'
 import { startCase } from '@/utils'
+import { parseActivityHash } from '@/utils/activityHash'
 import { globalStore } from '@/stores/global'
 import { usersStore } from '@/stores/users'
 import { useTimelinePreferences } from '@/composables/useTimelinePreferences'
 import { whatsappEnabled } from '@/composables/whatsapp'
 import { useDocument } from '@/data/document'
-import { useTelemetry } from 'frappe-ui/frappe'
+import { useTelemetry } from '@framework/ui/telemetry'
 import { Button, createResource, toast } from 'frappe-ui'
 import { useElementVisibility } from '@vueuse/core'
 import {
@@ -498,6 +576,17 @@ const { $socket } = globalStore()
 const { getUser } = usersStore()
 const { capture } = useTelemetry()
 const { isNewestFirst } = useTimelinePreferences()
+const { openNote } = useNoteView()
+
+function viewNote(name) {
+  openNote({ name }, { edit: () => modalRef.value.showNote({ name }) })
+}
+
+const noteActionText = {
+  added: __('added a note'),
+  pinned: __('pinned the note'),
+  unpinned: __('unpinned the note'),
+}
 
 const props = defineProps({
   doctype: { type: String, default: 'CRM Lead' },
@@ -510,7 +599,10 @@ const emit = defineEmits(['beforeSave', 'afterSave'])
 const route = useRoute()
 
 const reload = defineModel('reload', { type: Boolean, default: false })
-const tabIndex = defineModel('tabIndex', { type: Number, default: 0 })
+const activeTab = defineModel('activeTab', {
+  type: String,
+  default: 'activity',
+})
 
 const { document: _document } = useDocument(props.doctype, props.docname)
 
@@ -522,14 +614,19 @@ const showFilesUploader = ref(false)
 const fieldLayoutTabIndex = ref(0)
 const fieldLayoutTabName = ref('')
 
-const title = computed(() => props.tabs?.[tabIndex.value]?.name || 'Activity')
+const title = computed(
+  () =>
+    props.tabs?.find((tab) => tab.value === activeTab.value)?.name ||
+    'Activity',
+)
 
 const changeTabTo = (tabName) => {
-  const tabNames = props.tabs?.map((tab) => tab.name?.toLowerCase())
-  const index = tabNames?.indexOf(tabName)
-  if (index == -1) return
-  tabIndex.value = index
+  if (!props.tabs?.some((tab) => tab.value === tabName)) return
+  activeTab.value = tabName
 }
+
+// Data loads after mount, so the first load is what lands on a linked row.
+let linkedRowOnLoad = linkedRow(route.hash)
 
 const all_activities = createResource({
   url: 'crm.api.activities.get_activities',
@@ -539,7 +636,11 @@ const all_activities = createResource({
   transform: ([versions, calls, notes, tasks, attachments]) => {
     return { versions, calls, notes, tasks, attachments }
   },
-  onSuccess: () => nextTick(() => scroll()),
+  onSuccess: () =>
+    nextTick(() => {
+      scroll(linkedRowOnLoad)
+      linkedRowOnLoad = null
+    }),
   onError: (error) => {
     toast.error(error.messages?.[0] || __('Failed to load activities'))
   },
@@ -594,8 +695,32 @@ onMounted(() => {
   })
 })
 
+// A hash change no longer remounts the page, so links that point at an
+// activity on the page already open (like a mention notification) scroll here.
+watch(
+  () => route.hash,
+  (hash) => hash && scrollToHash(hash),
+)
+
+function linkedRow(hash) {
+  const { anchor } = parseActivityHash(hash)
+  if (!anchor || props.tabs?.some((tab) => tab.value === anchor)) return null
+  return anchor
+}
+
+function scrollToHash(hash) {
+  const id = parseActivityHash(hash).anchor || null
+  let tabNames = props.tabs?.map((tab) => tab.name)
+  if (!tabNames?.includes(id)) {
+    scroll(id)
+  }
+}
+
 function handleDocinfoUpdate({ doc, key }) {
-  if (key !== 'comments') return
+  // 'comments' covers comment activity; 'communications' covers new/updated
+  // emails (e.g. a reply arriving, or a read-receipt coming in) so the
+  // timeline reflects them live instead of only after a manual reload.
+  if (key !== 'comments' && key !== 'communications') return
   if (doc.reference_doctype !== props.doctype) return
   if (doc.reference_name !== props.docname) return
 
@@ -653,7 +778,12 @@ const activities = computed(() => {
     return sortByModified(all_activities.data.tasks)
   } else if (title.value == 'Notes') {
     if (!all_activities.data?.notes) return []
-    return sortByModified(all_activities.data.notes)
+    // pinned notes first, then newest; sort a copy so the source list isn't reordered
+    return [...all_activities.data.notes].sort(
+      (a, b) =>
+        (b.pinned || 0) - (a.pinned || 0) ||
+        new Date(b.modified) - new Date(a.modified),
+    )
   } else if (title.value == 'Attachments') {
     if (!all_activities.data?.attachments) return []
     return sortByModified(all_activities.data.attachments)
@@ -822,6 +952,9 @@ function timelineIcon(activity_type, is_lead) {
     case 'attachment_log':
       icon = AttachmentIcon
       break
+    case 'note':
+      icon = NoteIcon
+      break
     default:
       icon = DotIcon
   }
@@ -858,5 +991,5 @@ function scroll(hash) {
   }, 500)
 }
 
-defineExpose({ emailBox, all_activities, changeTabTo })
+defineExpose({ emailBox, all_activities, changeTabTo, modalRef })
 </script>

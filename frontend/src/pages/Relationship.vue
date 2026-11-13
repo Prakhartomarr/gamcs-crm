@@ -17,12 +17,12 @@
       <Dropdown
         v-if="doc.stage"
         :options="stageOptions(triggerStageChange)"
-        placement="right"
+        align="end"
       >
         <template #default="{ open }">
           <Button
             :label="doc.stage"
-            :iconRight="open ? 'chevron-up' : 'chevron-down'"
+            :iconRight="open ? 'lucide-chevron-up' : 'lucide-chevron-down'"
           >
             <template #prefix>
               <IndicatorIcon :class="getStage(doc.stage).color" />
@@ -34,16 +34,15 @@
   </LayoutHeader>
   <div v-if="doc.name" class="flex h-full overflow-hidden">
     <Tabs
-      v-model="tabIndex"
-      as="div"
+      v-model="activeTab"
       :tabs="tabs"
-      class="flex flex-1 overflow-hidden flex-col [&_[role='tab']]:px-0 [&_[role='tab']]:shrink-0 [&_[role='tablist']]:px-5 [&_[role='tablist']::-webkit-scrollbar]:h-0 [&_[role='tablist']]:min-h-[45px] [&_[role='tablist']]:gap-7.5 [&_[role='tabpanel']:not([hidden])]:flex [&_[role='tabpanel']:not([hidden])]:grow"
+      class="flex flex-1 overflow-hidden flex-col [&_[role='tab']]:px-1 [&_[role='tab']]:shrink-0 [&_[role='tablist']]:px-5 [&_[role='tablist']::-webkit-scrollbar]:h-0 [&_[role='tablist']]:min-h-[45px] [&_[role='tablist']]:gap-[22px] [&>[role='tabpanel']:not([hidden])]:flex [&>[role='tabpanel']:not([hidden])]:grow [&>[data-slot=tab-list]]:overflow-x-auto [&_[data-slot=tab-indicator]]:translate-y-0 [&>[data-slot=tab-panel]]:min-h-0 [&>[data-slot=tab-panel]]:flex-col [&>[data-slot=tab-panel]]:overflow-auto"
     >
       <template #tab-panel>
         <Activities
           ref="activities"
           v-model:reload="reload"
-          v-model:tabIndex="tabIndex"
+          v-model:activeTab="activeTab"
           doctype="GAMCS Relationship"
           :docname="relationshipId"
           :tabs="tabs"
@@ -318,14 +317,14 @@ const breadcrumbs = computed(() => {
 })
 
 const tabs = computed(() => [
-  { name: 'Activity', label: __('Activity'), icon: ActivityIcon },
-  { name: 'Comments', label: __('Comments'), icon: CommentIcon },
-  { name: 'Data', label: __('Data'), icon: DetailsIcon },
-  { name: 'Tasks', label: __('Tasks'), icon: TaskIcon },
-  { name: 'Notes', label: __('Notes'), icon: NoteIcon },
-  { name: 'Attachments', label: __('Attachments'), icon: AttachmentIcon },
+  { name: 'Activity', value: 'activity', label: __('Activity'), iconLeft: ActivityIcon },
+  { name: 'Comments', value: 'comments', label: __('Comments'), iconLeft: CommentIcon },
+  { name: 'Data', value: 'data', label: __('Data'), iconLeft: DetailsIcon },
+  { name: 'Tasks', value: 'tasks', label: __('Tasks'), iconLeft: TaskIcon },
+  { name: 'Notes', value: 'notes', label: __('Notes'), iconLeft: NoteIcon },
+  { name: 'Attachments', value: 'attachments', label: __('Attachments'), iconLeft: AttachmentIcon },
 ])
-const { tabIndex } = useActiveTabManager(tabs, 'lastRelationshipTab')
+const { activeTab } = useActiveTabManager(tabs, 'lastRelationshipTab')
 
 const sections = createResource({
   url: 'crm.fcrm.doctype.crm_fields_layout.crm_fields_layout.get_sidepanel_sections',

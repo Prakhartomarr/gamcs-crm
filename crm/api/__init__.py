@@ -9,7 +9,7 @@ from frappe.utils import cstr, split_emails, validate_email_address
 from crm.utils import is_frappe_version
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True)  # nosemgrep: guest-whitelisted-method
 def get_translations():
 	if frappe.session.user != "Guest":
 		language = frappe.db.get_value("User", frappe.session.user, "language")
@@ -52,6 +52,27 @@ def get_user_signature():
 	return content
 
 
+@frappe.whitelist()
+def get_unsubscribed_emails(emails: list[str], doctype: str, name: str) -> list[str]:
+	"""Mirror the filter in frappe's QueueBuilder, which drops these recipients without an error."""
+	frappe.has_permission(doctype, "read", name, throw=True)
+	if not emails:
+		return []
+
+	EmailUnsubscribe = frappe.qb.DocType("Email Unsubscribe")
+	return (
+		frappe.qb.from_(EmailUnsubscribe)
+		.select(EmailUnsubscribe.email)
+		.distinct()
+		.where(EmailUnsubscribe.email.isin(emails))
+		.where(
+			(EmailUnsubscribe.global_unsubscribe == 1)
+			| ((EmailUnsubscribe.reference_doctype == doctype) & (EmailUnsubscribe.reference_name == name))
+		)
+		.run(pluck=True)
+	)
+
+
 def check_app_permission():
 	if frappe.session.user == "Administrator":
 		return True
@@ -76,9 +97,7 @@ def check_app_permission():
 	return False
 
 
-@frappe.whitelist(
-	allow_guest=True
-)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method — invite key required; rate-limited
+@frappe.whitelist(allow_guest=True)  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=10, seconds=60 * 60)
 def accept_invitation(key: str | None = None):
 	if not key:

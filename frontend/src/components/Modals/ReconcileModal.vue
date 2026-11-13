@@ -1,6 +1,6 @@
 <!-- GAMCS D42: the accepted amount beside the structure's TCV; save the structure that makes them agree -->
 <template>
-  <Dialog v-model:open="show" :title="__('Reconcile billing structure')" :options="{ size: 'xl' }">
+  <Dialog v-model:open="show" :title="__('Reconcile billing structure')" :size="'xl'">
     <template #default>
       <div v-if="!suggestion.data" class="py-6 text-center text-ink-gray-5">{{ __('Loading') }}</div>
       <div v-else data-testid="reconcile-dialog">

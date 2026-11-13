@@ -7,9 +7,14 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'happy-dom',
-    root: __dirname,
+    root: import.meta.dirname,
     setupFiles: ['./tests/setup.js'],
-    include: ['tests/**/*.test.js', 'src/**/*.test.js'],
+    include: ['tests/**/*.test.{js,ts}', 'src/**/*.test.{js,ts}'],
+    server: {
+      deps: {
+        inline: ['frappe-ui'],
+      },
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'json-summary'],
@@ -23,8 +28,19 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
-    },
+    alias: [
+      { find: '@', replacement: path.resolve(import.meta.dirname, 'src') },
+      {
+        find: /^~icons\/.*/,
+        replacement: path.resolve(import.meta.dirname, 'tests/stubs/icon.js'),
+      },
+      {
+        find: /^@framework\/ui\/(.*)$/,
+        replacement: path.resolve(
+          import.meta.dirname,
+          'tests/stubs/framework/$1',
+        ),
+      },
+    ],
   },
 })

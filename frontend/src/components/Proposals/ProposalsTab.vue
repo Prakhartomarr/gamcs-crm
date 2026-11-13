@@ -10,13 +10,13 @@
         <Button
           v-if="proposals.data?.length"
           :label="__('Revise latest')"
-          icon-left="copy"
+          icon-left="lucide-copy"
           @click="reviseLatest"
         />
         <Button
           variant="solid"
           :label="__('New proposal')"
-          icon-left="plus"
+          icon-left="lucide-plus"
           @click="openForm()"
         />
       </div>
@@ -41,7 +41,7 @@
       <Badge
         :label="p.approval_status"
         variant="subtle"
-        :theme="{ Approved: 'green', Rejected: 'red' }[p.approval_status] || 'orange'"
+        :theme="{ Approved: 'green', Rejected: 'red' }[p.approval_status] || 'amber'"
       />
       <Badge
         :label="p.client_status"
@@ -61,12 +61,12 @@
       >
       <div class="ml-auto flex gap-1">
         <Dropdown v-if="isManager()" :options="approvalOptions(p)">
-          <Button :label="__('Approval')" icon-right="chevron-down" />
+          <Button :label="__('Approval')" icon-right="lucide-chevron-down" />
         </Dropdown>
         <Dropdown :options="clientOptions(p)">
-          <Button :label="__('Client status')" icon-right="chevron-down" />
+          <Button :label="__('Client status')" icon-right="lucide-chevron-down" />
         </Dropdown>
-        <Button variant="ghost" icon="edit" @click="openForm(p)" />
+        <Button variant="ghost" icon="lucide-pencil" @click="openForm(p)" />
       </div>
     </div>
 
@@ -106,7 +106,7 @@
               <template #default="{ openFileSelector, uploading }">
                 <Button
                   :label="form.document ? __('Replace PDF') : __('Upload PDF')"
-                  icon-left="upload"
+                  icon-left="lucide-upload"
                   :loading="uploading"
                   :disabled="!form.name"
                   @click="openFileSelector"

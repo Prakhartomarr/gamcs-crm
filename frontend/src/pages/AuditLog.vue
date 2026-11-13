@@ -7,7 +7,7 @@
     <template #right-header>
       <Button
         :label="__('Export CSV')"
-        icon-left="download"
+        icon-left="lucide-download"
         :disabled="!log.data?.length"
         @click="exportCsv"
       />

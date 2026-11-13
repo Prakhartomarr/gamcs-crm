@@ -1,12 +1,14 @@
 <!-- GAMCS: create a partner relationship (F1, D1), adapted from LeadModal.vue -->
 <template>
-  <Dialog v-model:open="show" :size="'3xl'">
-    <template #body>
+  <Dialog v-model:open="show" :size="'3xl'" bare>
+    <template #default>
       <div class="bg-surface-elevation-1 px-4 pb-6 pt-5 sm:px-6">
         <div class="mb-5 flex items-center justify-between">
-          <h3 class="text-3xl-semibold leading-6 text-ink-gray-9">
-            {{ __('Create Relationship') }}
-          </h3>
+          <Dialog.Title as-child>
+            <h3 class="text-3xl-semibold leading-6 text-ink-gray-9">
+              {{ __('Create Relationship') }}
+            </h3>
+          </Dialog.Title>
           <div class="flex items-center gap-1">
             <Button
               v-if="isManager() && !isMobileView"
@@ -56,7 +58,7 @@
 <script setup>
 // GAMCS F11: ask the server for probable duplicates before inserting; "Create anyway" records the override
 import DuplicateModal from '@/components/Modals/DuplicateModal.vue'
-import { call as checkDuplicatesCall } from 'frappe-ui'
+import { call as checkDuplicatesCall, Dialog } from 'frappe-ui'
 import EditIcon from '@/components/Icons/EditIcon.vue'
 import FieldLayout from '@/components/FieldLayout/FieldLayout.vue'
 import { usersStore } from '@/stores/users'

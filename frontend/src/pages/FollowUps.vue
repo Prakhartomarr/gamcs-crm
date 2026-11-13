@@ -7,7 +7,7 @@
     <template #right-header>
       <Button
         :label="__('Refresh')"
-        icon-left="refresh-cw"
+        icon-left="lucide-refresh-cw"
         @click="data.reload()"
       />
     </template>
@@ -56,7 +56,7 @@
                 <Badge
                   v-if="row.is_stale"
                   class="ml-2"
-                  theme="orange"
+                  theme="amber"
                   variant="subtle"
                   :label="__('Stale')"
                 />
@@ -83,7 +83,7 @@
             <Button
               size="sm"
               :label="__('Log')"
-              icon-left="plus"
+              icon-left="lucide-plus"
               @click="openLog(row)"
             />
           </div>

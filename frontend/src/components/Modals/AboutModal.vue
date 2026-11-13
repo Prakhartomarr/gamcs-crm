@@ -1,7 +1,7 @@
 <!-- GAMCS: About panel reads brand from FCRM Settings, shows our versions and links to the licences page -->
 <template>
-  <Dialog v-model:open="show" :size="'sm'">
-    <template #body>
+  <Dialog v-model:open="show" :size="'sm'" bare>
+    <template #default>
       <div class="p-4 pt-5">
         <div class="flex justify-center">
           <div class="flex flex-col items-center">
@@ -12,9 +12,11 @@
               :alt="brand.name"
             />
             <CRMLogo v-else class="mb-3 size-12" />
-            <h3 class="text-2xl-semibold text-ink-gray-9">
-              {{ brand.name || __('CRM') }}
-            </h3>
+            <Dialog.Title as-child>
+              <h3 class="text-2xl-semibold text-ink-gray-9">
+                {{ brand.name || __('CRM') }}
+              </h3>
+            </Dialog.Title>
             <p v-if="versions.data" class="mt-1 text-sm text-ink-gray-6">
               {{ __('Version {0}', [versions.data.gamcs_crm]) }}
             </p>
@@ -25,7 +27,7 @@
           <a
             v-for="link in links"
             :key="link.label"
-            class="flex py-2 px-2 hover:bg-surface-gray-1 rounded cursor-pointer"
+            class="flex py-2 px-2 hover:bg-surface-gray-1 rounded-4 cursor-pointer"
             target="_blank"
             :href="link.url"
           >
@@ -60,7 +62,7 @@ import CRMLogo from '@/components/Icons/CRMLogo.vue'
 import { getSettings } from '@/stores/settings'
 import LucideScale from '~icons/lucide/scale'
 import LucideBug from '~icons/lucide/bug'
-import { createResource } from 'frappe-ui'
+import { createResource, Dialog } from 'frappe-ui'
 
 const { brand } = getSettings()
 
