@@ -44,6 +44,7 @@ const RECORD_ICONS = {
   'CRM Deal': DealsIcon,
   Contact: ContactsIcon,
   'CRM Organization': OrganizationsIcon,
+  'GAMCS Relationship': 'handshake', // GAMCS E44
 }
 
 const SETTINGS_SECTIONS = [
@@ -391,8 +392,9 @@ function recordCommand(record, group, tracked) {
       // The server matched these on fields the title may not contain.
       keywords: record.keywords,
       translate: false,
-      subtitle: record.doctype.replace('CRM ', ''),
-      group,
+      // GAMCS E44: grouped by type, "company · ID · owner · status"
+      subtitle: record.subtitle ?? record.doctype.replace('CRM ', ''),
+      group: (group === 'Records' && record.group) || group,
       icon:
         group === 'Recent'
           ? 'clock'
