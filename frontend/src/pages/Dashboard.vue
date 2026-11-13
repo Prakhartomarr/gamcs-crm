@@ -43,7 +43,7 @@
 
     <div class="w-full overflow-y-auto">
     <!-- GAMCS: greeting + follow-up KPI cards, filters as pills on the right -->
-    <DashboardGreeting class="px-5 pt-6 sm:px-6">
+    <DashboardGreeting class="px-6 pt-6">
       <template #filters>
     <div class="flex flex-wrap items-center gap-2">
       <Dropdown

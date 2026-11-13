@@ -5,10 +5,11 @@
       class="flex h-full w-full overflow-hidden cursor-pointer"
     >
       <Tooltip :text="__(item.data?.tooltip || '')">
+        <!-- GAMCS: Tooltip drops data-slot, so the brand card style needs a class -->
         <NumberCard
           v-if="item.data"
           :key="index"
-          class="h-full"
+          class="gamcs-chart-surface h-full"
           v-bind="numberCardProps"
         />
       </Tooltip>

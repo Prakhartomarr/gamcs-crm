@@ -16,7 +16,7 @@
     </template>
   </LayoutHeader>
   <div class="gamcs-canvas flex-1 overflow-y-auto px-4 py-6 sm:px-6">
-    <div class="mx-auto flex max-w-5xl flex-col gap-6">
+    <div class="flex max-w-5xl flex-col gap-6">
       <div class="flex flex-col gap-1">
         <div class="text-base text-ink-gray-5">{{ todayLabel }}</div>
         <h1 class="text-2xl leading-tight text-ink-gray-9 sm:text-3xl">
