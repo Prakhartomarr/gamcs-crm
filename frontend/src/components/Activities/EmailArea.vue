@@ -19,6 +19,13 @@
       </div>
       <div class="flex items-center gap-2 shrink-0">
         <Badge
+          v-if="activity.data.gamcs_sequence"
+          :label="activity.data.gamcs_sequence"
+          variant="subtle"
+          theme="gray"
+          class="hidden sm:flex"
+        /><!-- GAMCS E56 -->
+        <Badge
           v-if="status.label"
           :label="__(status.label)"
           variant="subtle"
@@ -91,6 +98,7 @@ import AttachmentItem from '@/components/AttachmentItem.vue'
 import EmailContent from '@/components/Activities/EmailContent.vue'
 import TimelineTimestamp from '@/components/Activities/TimelineTimestamp.vue'
 import { createDialog } from '@/utils/dialogs'
+import { timeAgo } from '@/utils' // GAMCS E55
 import { Badge, Dropdown, call, dayjsLocal, toast } from 'frappe-ui'
 import { reactive, computed, ref } from 'vue'
 
@@ -268,6 +276,12 @@ function draftBeforeQuote(editor) {
 }
 
 const status = computed(() => {
+  // GAMCS E55: an opened email reads "Opened · 2h ago" (Frappe stores the pixel hit as "Read")
+  const data = props.activity?.data || {}
+  if (data.read_by_recipient && data.sent_or_received !== 'Received') {
+    const when = data.read_by_recipient_on ? timeAgo(data.read_by_recipient_on) : ''
+    return { label: when ? __('Opened · {0}', [when]) : __('Opened'), color: 'blue' }
+  }
   let _status = props.activity?.data?.delivery_status
   let indicator_color = 'red'
   if (['Sent', 'Clicked'].includes(_status)) {

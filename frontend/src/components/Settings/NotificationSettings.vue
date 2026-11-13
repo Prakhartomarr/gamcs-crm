@@ -7,7 +7,7 @@
         {{ __('Notifications') }}
       </h2>
       <p class="text-p-base text-ink-gray-6">
-        {{ __('Choose which reminders you get in the notifications panel.') }}
+        {{ __('Choose which reminders you get, in the notifications panel or by email.') }}
       </p>
     </div>
 
