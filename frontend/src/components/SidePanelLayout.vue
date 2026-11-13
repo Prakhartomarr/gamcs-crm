@@ -285,8 +285,8 @@
                           class="form-control"
                           type="text"
                           variant="ghost"
-                          :value="getFormattedCurrency(field.fieldname, doc)"
-                          :placeholder="field.placeholder"
+                          :value="moneyOrBlank(field.fieldname)"
+                          :placeholder="field.read_only ? '—' : field.placeholder"
                           :debounce="500"
                           :disabled="Boolean(field.read_only)"
                           @change.stop="
@@ -494,6 +494,14 @@ if (props.docname) {
 }
 
 const doc = computed(() => document.doc || {})
+
+// GAMCS Q30: an unset amount reads "₹ 0.00", which looks like a real figure. Show the
+// placeholder instead ("Add …" when editable, "—" when read-only).
+function moneyOrBlank(fieldname) {
+  return Number(doc.value[fieldname])
+    ? getFormattedCurrency(fieldname, doc.value)
+    : ''
+}
 
 const _sections = computed(() => {
   if (!props.sections?.length) return []
